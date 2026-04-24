@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing</title>
+    <link rel="stylesheet" href="../CSS/landing.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">KickMap</div>
+        <form id="landingLoginForm" class="login-form" novalidate>
+            <label class="field-wrap">
+                <span>Email</span>
+                <input id="login-email" type="email" name="login-email" aria-label="Login email" required>
+            </label>
+            <label class="field-wrap">
+                <span>Password</span>
+                <input id="login-password" type="password" name="login-password" aria-label="Login password" required>
+            </label>
+            <button type="submit" class="btn">Login</button>
+            <button id="profile-btn" type="button" class="avatar" aria-label="User profile"></button>
+            <p id="login-msg" class="form-msg" aria-live="polite"></p>
+        </form>
+    </header>
+
+    <main class="hero">
+        <section class="hero-visual" aria-labelledby="tagline">
+            <img src="../Images/mexico.png" alt="Digital world connection map">
+            <h2 id="tagline">Conecta con quien<br> quieras, cuando quieras.</h2>
+        </section>
+
+        <section class="register" aria-labelledby="register-title">
+            <h3 id="register-title">Si aún no te has registrado:</h3>
+            <form id="landingRegisterForm" class="register-form" novalidate>
+                <div class="name-row">
+                    <input id="register-first-name" type="text" name="first-name" placeholder="Nombre" aria-label="Name" required>
+                    <input id="register-last-name" type="text" name="last-name" placeholder="Apellido" aria-label="Last name" required>
+                </div>
+                <input id="register-email" type="email" name="register-email" placeholder="Email" aria-label="Register email" required>
+                <input id="register-password" type="password" name="register-password" placeholder="Contraseña" aria-label="Register password" required>
+                <input id="register-confirm-password" type="password" name="confirm-password" placeholder="Confirmar contraseña" aria-label="Confirm password" required>
+                <label class="photo-label" for="register-photo">Foto de perfil (opcional)</label>
+                <input id="register-photo" class="photo-input" type="file" name="register-photo" accept="image/*" aria-label="Foto de perfil">
+                <button type="submit" class="btn register-btn">Registrarse</button>
+                <p id="register-msg" class="form-msg" aria-live="polite"></p>
+            </form>
+        </section>
+    </main>
+
+    <footer class="site-footer">KickMap 2026</footer>
+    <script src="../JS/app.js"></script>
+    <script src="../JS/landing.js"></script>
+   
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reglas</title>
+  <link rel="stylesheet" href="../CSS/styles.css">
+</head>
+<body class="home-page">
+
+<div class="home-shell">
+  <div id="navbar-container"></div>
+
+  <main class="home-main">
+    <div class="card">
+      <h2>Reglas de uso</h2>
+<p class="small">
+  Queremos que KickMap sea una app cómoda, segura y con buen ambiente. Estas reglas son para que todos tengan una buena experiencia.
+</p>
+
+<h3>Convivencia y respeto</h3>
+<p class="small">
+  Mantén un trato respetuoso en chats y grupos. Nada de insultos, acoso, amenazas o burlas. Si alguien se siente incómodo, lo correcto es parar y reportar.
+</p>
+
+<h3>Contenido adecuado</h3>
+<p class="small">
+  Evita compartir contenido ofensivo o explícito. Las fotos, audios y mensajes deben ser apropiados para un entorno general. Si algo no lo dirías en público, mejor no lo envíes aquí.
+</p>
+
+<h3>No spam</h3>
+<p class="small">
+  No mandes mensajes repetidos, cadenas, publicidad o links sospechosos. Si compartes un link, que sea útil para el grupo (por ejemplo ubicación, mapa, sitio del lugar).
+</p>
+
+<h3>Privacidad y datos personales</h3>
+<p class="small">
+  No publiques información personal de otras personas sin su permiso (teléfono, dirección, redes, etc.). Si vas a compartir tu ubicación, hazlo solo cuando sea necesario y con gente de confianza.
+</p>
+
+<h3>Ubicación con responsabilidad</h3>
+<p class="small">
+  Si compartes ubicación, revisa que el link sea correcto y que no estés exponiendo lugares sensibles (como tu casa). Recuerda que puedes dejar de compartir ubicación cuando quieras.
+</p>
+
+<h3>Organización en grupos</h3>
+<p class="small">
+  Usa tareas para organizarse, no para saturar. Pon títulos claros (“Comprar boletos”, “Revisar horarios”, “Ruta al estadio”) y marca tareas terminadas para que el grupo no se confunda.
+</p>
+
+<h3>Publicaciones y perfil</h3>
+<p class="small">
+  Procura que tus publicaciones aporten algo: recomendaciones, fotos útiles, tips o experiencias. Si subes imágenes, intenta que no estén borrosas y evita subir demasiadas repetidas.
+</p>
+
+<h3>Reportes y bloqueos</h3>
+<p class="small">
+  Si alguien rompe las reglas, lo ideal es no pelear: bloquea o reporta. Así la comunidad se mantiene tranquila y la app se siente segura para todos.
+</p>
+
+<div class="notice">
+  Estas reglas buscan mantener la app limpia, segura y con buen ambiente para que la experiencia sea agradable. GRACIAS
+</div>
+    </div>
+  </main>
+</div>
+
+<script src="../JS/navbar.js"></script>
+<script src="../JS/app.js"></script>
+<script>
+  initNavbar('navbar-container', 'reglas');
+  requireLogin();
+  renderHeaderUser();
+  wireLogoutButton();
+</script>
+</body>
+</html>

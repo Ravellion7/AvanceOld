@@ -1,0 +1,365 @@
+:root {
+    --header-bg: #CAD593;
+    --body-bg: #DCEDB9;
+    --footer-bg: #CAD593;
+    --text-dark: #000000;
+    --panel-line: #CBD081;
+    --input-bg: #dbe7c3;
+    --btn-bg: #bcdb65;
+    --btn-hover: #CBD081;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    color: var(--text-dark);
+    font-family: "Libre Baskerville", Georgia, serif;
+    background: var(--body-bg);
+}
+
+.site-header {
+    min-height: 64px;
+    padding: 4px 20px;
+    background: var(--header-bg);
+    border-bottom: 1px solid #b6bcc4;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.brand {
+    font-family: "Caveat", cursive;
+    font-size: 36px;
+    line-height: 1;
+    align-self: flex-end;
+    margin-bottom: 7px;
+}
+
+.login-form {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: nowrap;
+    gap: 14px;
+    font-family: "Manrope", sans-serif;
+    position: relative;
+}
+
+.field-wrap {
+    display: grid;
+    gap: 6px;
+}
+
+.field-wrap span {
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.login-form .field-wrap span {
+    font-size: 14px;
+}
+
+input {
+    border: 0;
+    border-radius: 3px;
+    background: var(--input-bg);
+    padding: 10px 14px;
+    color: #101417;
+    font-family: "Libre Baskerville", Georgia, serif;
+    font-size: 31px;
+    line-height: 1;
+}
+
+.login-form input {
+    width: 150px;
+    height: 26px;
+    font-size: 16px;
+    text-align: center;
+    padding: 0 10px;
+}
+
+.btn {
+    border: 0;
+    border-radius: 16px;
+    border: 1px solid #83a32b;
+    background: var(--btn-bg);
+    color: #101417;
+    font-family: "Libre Baskerville", Georgia, serif;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1;
+    padding: 14px 30px;
+    cursor: pointer;
+    transition: background-color 0.22s ease, transform 0.22s ease;
+}
+
+.btn:hover {
+    background: var(--btn-hover);
+    transform: translateY(-1px);
+}
+
+.login-form .btn {
+    font-family: "Manrope", sans-serif;
+    font-size: 15px;
+    padding: 8px 25px;
+    border-radius: 12px;
+}
+
+.avatar {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 999px;
+    background: #918868;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+}
+
+.avatar.has-photo {
+    box-shadow: 0 0 0 2px rgba(145, 136, 104, 0.6);
+}
+
+.hero {
+    min-height: calc(100vh - 162px);
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(360px, 1fr);
+    gap: 48px;
+    padding: 30px 74px 46px;
+    background:
+        radial-gradient(circle at 15% 20%, #ffffff 0%, #e3e4e1 45%, #cfcfca 100%);
+}
+
+.hero-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.hero-visual img {
+    width: min(430px, 90%);
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.16));
+}
+
+.hero-visual h2 {
+    margin: -6px 0 0;
+    max-width: 440px;
+    text-align: center;
+    font-size: clamp(20px, 2.2vw, 30px);
+    line-height: 1.2;
+    font-weight: 500;
+}
+
+.register {
+    width: min(460px, 100%);
+    justify-self: center;
+    padding-top: 80px;
+}
+
+.register h3 {
+    margin: 0 0 12px;
+    text-align: center;
+    font-size: clamp(18px, 1.6vw, 28px);
+    border-bottom: 2px solid var(--panel-line);
+    padding-bottom: 10px;
+}
+
+.register-form {
+    display: grid;
+    gap: 10px;
+}
+
+.register-form input {
+    width: 100%;
+    height: 40px;
+    text-align: center;
+    font-size: clamp(16px, 1.15vw, 21px);
+}
+
+.name-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.register-btn {
+    justify-self: center;
+    margin-top: 6px;
+    min-width: 170px;
+    font-size: 20px;
+    padding: 10px 22px;
+}
+
+.photo-label {
+    font-family: "Manrope", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #39414a;
+    margin-top: 2px;
+}
+
+.photo-input {
+    padding: 8px;
+    height: auto;
+    font-size: 13px;
+    font-family: "Manrope", sans-serif;
+}
+
+.form-msg {
+    margin: 2px 0 0;
+    min-height: 18px;
+    font-family: "Manrope", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.login-form .form-msg {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: max-content;
+    max-width: 320px;
+    min-height: 0;
+    margin: 4px 0 0;
+    text-align: left;
+}
+
+#login-msg:empty {
+    display: none;
+}
+
+.register-form .form-msg {
+    text-align: center;
+}
+
+.form-msg.is-error {
+    color: #93241c;
+}
+
+.form-msg.is-success {
+    color: #1a6d35;
+}
+
+.site-footer {
+    min-height: 84px;
+    display: grid;
+    place-items: center;
+    background: var(--footer-bg);
+    font-family: "Caveat", cursive;
+    font-size: 24px;
+}
+
+@media (max-width: 1080px) {
+    .site-header {
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 20px 12px;
+    }
+
+    .brand {
+        align-self: center;
+        margin-bottom: 4px;
+        text-align: center;
+    }
+
+    .login-form {
+        width: 100%;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .field-wrap {
+        width: min(300px, 100%);
+    }
+
+    .login-form input {
+        width: 100%;
+    }
+
+    .login-form .form-msg {
+        position: static;
+        flex-basis: 100%;
+        width: 100%;
+        max-width: 300px;
+        margin: 0;
+        text-align: center;
+    }
+
+    .hero {
+        grid-template-columns: 1fr;
+        padding: 34px 20px 28px;
+        gap: 26px;
+    }
+
+    .register {
+        width: min(580px, 100%);
+    }
+}
+
+@media (max-width: 640px) {
+    .site-header {
+        padding: 10px 16px 14px;
+    }
+
+    .brand {
+        font-size: 40px;
+        align-self: center;
+        margin-bottom: 4px;
+        text-align: center;
+    }
+
+    .login-form {
+        width: 100%;
+    }
+
+    .field-wrap {
+        width: min(300px, 100%);
+    }
+
+    .login-form input {
+        width: 100%;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .login-form .btn {
+        font-size: 15px;
+        padding: 8px 22px;
+        align-self: center;
+    }
+
+    .avatar {
+        width: 46px;
+        height: 46px;
+    }
+
+    .name-row {
+        grid-template-columns: 1fr;
+    }
+
+    .register-form input {
+        height: 44px;
+        font-size: 15px;
+    }
+
+    .photo-input {
+        height: auto;
+        font-size: 12px;
+    }
+
+    .login-form .form-msg {
+        text-align: center;
+    }
+}

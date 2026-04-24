@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat</title>
+  <link rel="stylesheet" href="../CSS/styles.css">
+</head>
+<body class="home-page">
+
+<div class="home-shell">
+  <div id="navbar-container"></div>
+
+  <main class="home-main">
+  <div class="card">
+    <a class="btn btn-ghost" href="chats.html">Volver a chats</a> <br>
+
+    <h2 id="chatTitle">Chat</h2>
+    
+    <div class="chatbox" id="chatMessages">
+      <div class="msg other">
+        <span>Cargando historial...</span>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <input id="chatInput" type="text" placeholder="Escribe un mensaje...">
+      <button id="btnSendMessage">Enviar</button>
+      <button id="btnCall"> Llamar</button>
+    </div>
+
+    <p class="small" id="callStatus">Estado: Sin llamada</p>
+    <p class="small" id="typingStatus"></p>
+
+    <div class="footer-actions">
+      <input id="privateFileInput" type="file" accept="image/*,video/*">
+    </div>
+  </div>
+  </main>
+</div>
+
+<script src="../JS/navbar.js"></script>
+<script src="../JS/app.js"></script>
+<script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
+<script src="../JS/chat_private.js"></script>
+</body>
+</html>

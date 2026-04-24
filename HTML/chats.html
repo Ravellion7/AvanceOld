@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chats</title>
+  <link rel="stylesheet" href="../CSS/styles.css">
+</head>
+<body class="home-page chats-page">
+
+<div class="home-shell">
+  <div id="navbar-container"></div>
+
+  <main class="home-main">
+  <div class="card">
+    <h2>Chats</h2>
+  </div>
+
+  <div class="card">
+    <h3>Buscar chats</h3>
+    <div class="footer-actions chat-search-bar">
+      <input id="chatSearchInput" type="text" placeholder="Buscar por amigo o grupo">
+      <button id="btnChatSearch">Buscar</button>
+    </div>
+    <div class="small">Busca por nombre del amigo, grupo o por lo ultimo que se envio.</div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h3>Grupales</h3>
+      <div class="list" id="groupChatsList">
+        <div class="item small">Cargando chats grupales...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Privados</h3>
+      <div class="list" id="privateChatsList">
+        <div class="item small">Cargando chats privados...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Iniciar chat privado</h3>
+      <div class="footer-actions">
+        <input id="searchUsersInput" type="text" placeholder="Buscar por nombre o correo">
+        <button id="btnSearchUsers">Buscar</button>
+      </div>
+      <br>
+      <div class="list" id="usersList">
+        <div class="item small">Solo se muestran amigos aceptados.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Agregar amigos</h3>
+      <div class="footer-actions">
+        <input id="discoverUsersInput" type="text" placeholder="Buscar usuarios para enviar solicitud">
+        <button id="btnDiscoverUsers">Buscar</button>
+      </div>
+      <br>
+      <div class="list" id="discoverUsersList">
+        <div class="item small">Busca usuarios para enviar solicitud de amistad.</div>
+      </div>
+      <div class="footer-actions" style="margin-top:8px;">
+        <button id="btnDiscoverPrev" type="button">Anterior</button>
+        <span id="discoverPageInfo" class="small">Pagina 1</span>
+        <button id="btnDiscoverNext" type="button">Siguiente</button>
+      </div>
+    </div>
+
+  </div>
+  </main>
+</div>
+
+<script src="../JS/navbar.js"></script>
+<script src="../JS/app.js"></script>
+<script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
+<script src="../JS/chats.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Editar publicación</title>
+  <link rel="stylesheet" href="../CSS/styles.css">
+</head>
+<body class="home-page">
+
+<div class="home-shell">
+  <div id="navbar-container"></div>
+
+  <main class="home-main">
+  <div class="card">
+    <a class="btn btn-ghost" href="perfil.html">← Volver a perfil</a>
+
+    <h2>Editar publicación</h2>
+  </div>
+
+  <div class="row">
+
+    <div class="card">
+      <h3>Editar contenido</h3>
+
+      <label for="txtEdit">Texto</label>
+      <textarea id="txtEdit" placeholder="Edita tu texto...">Hoy fui a conocer puntos de interés cerca del centro y me gustaron mucho.</textarea>
+
+      <label for="imgEdit">Cambiar imagen (opcional)</label>
+      <input id="imgEdit" type="file" accept="image/*">
+
+      <div class="footer-actions">
+        <button id="btnSave">Guardar cambios</button>
+        <a class="btn btn-vertareas btn-secondary" href="perfil.html">Cancelar</a>
+      </div>
+
+      <p id="msg" class="small"></p>
+    </div>
+
+    <div class="card">
+      <h3>Vista previa</h3>
+
+      <div class="item">
+        <div class="editContent">
+          <img class="avatar" id="previewAvatar" alt="avatar">
+          <div>
+            <strong>Tu publicación</strong>
+            <div class="small">Vista previa</div>
+          </div>
+        </div>
+
+        <p id="previewText"></p>
+
+        <img id="previewImg" class="post-img" src="../Images/mtycentro.jpg" alt="demo">
+      </div>
+
+    </div>
+  </div>
+  </main>
+</div>
+
+<script src="../JS/navbar.js"></script>
+<script src="../JS/app.js"></script>
+<script>
+  initNavbar('navbar-container', 'perfil');
+  requireLogin();
+  renderHeaderUser();
+  wireLogoutButton();
+
+  const u = getSession();
+  const prevA = document.getElementById("previewAvatar");
+  if(u && u.photo){
+    prevA.src = u.photo;
+  } else {
+    prevA.style.display = "none";
+  }
+
+  const txt = document.getElementById("txtEdit");
+  const previewText = document.getElementById("previewText");
+  previewText.textContent = txt.value;
+
+  txt.addEventListener("input", ()=>{
+    previewText.textContent = txt.value;
+  });
+
+  const imgEdit = document.getElementById("imgEdit");
+  const previewImg = document.getElementById("previewImg");
+
+  imgEdit.addEventListener("change", async (e)=>{
+    const f = e.target.files[0];
+    if(!f) return;
+    const data = await fileToDataURL(f);
+    previewImg.src = data;
+  });
+
+  document.getElementById("btnSave").addEventListener("click", ()=>{
+    const msg = document.getElementById("msg");
+    msg.textContent = "Cambios guardados.";
+    msg.className = "ok";
+  });
+</script>
+
+</body>
+</html>

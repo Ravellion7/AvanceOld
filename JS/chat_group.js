@@ -1,0 +1,287 @@
+﻿(function () {
+  initNavbar('navbar-container', 'chats');
+  requireLogin();
+  renderHeaderUser();
+  wireLogoutButton();
+
+  const params = new URLSearchParams(window.location.search);
+  const chatId = Number(params.get('chatId'));
+  const groupName = params.get('name') || 'Grupo';
+
+  const titleEl = document.getElementById('chatTitle');
+  const boxEl = document.getElementById('chatBox');
+  const inputEl = document.getElementById('groupChatInput');
+  const sendBtn = document.getElementById('btnSendGroupMessage');
+  const fileInputEl = document.getElementById('groupFileInput');
+  const groupNameInputEl = document.getElementById('groupNameInput');
+  const renameBtn = document.getElementById('btnRenameGroup');
+  const groupNameStatusEl = document.getElementById('groupNameStatus');
+
+  const currentUser = getCurrentUser();
+  const apiBase = getApiBase();
+  const socketBase = apiBase.replace(/\/api\/?$/, '');
+  let socket = null;
+  let readTimeout = null;
+
+  if (titleEl) {
+    titleEl.textContent = groupName;
+  }
+
+  function escapeHtml(text) {
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function scrollBottom() {
+    boxEl.scrollTop = boxEl.scrollHeight;
+  }
+
+  function formatTime(value) {
+    const date = value ? new Date(value) : new Date();
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function scheduleMarkAsRead() {
+    if (!chatId) return;
+
+    if (readTimeout) {
+      clearTimeout(readTimeout);
+    }
+
+    readTimeout = setTimeout(() => {
+      apiRequest(`/chats/${chatId}/read`, { method: 'POST' }).catch(() => null);
+    }, 120);
+  }
+
+  function appendMessage(message) {
+    const mine = currentUser && Number(message.sender_id) === Number(currentUser.id);
+    const cls = mine ? 'me' : 'other';
+    const isMediaAttachment = Number(message.has_attachment) === 1 && ((String(message.file_mime || '').startsWith('image/')) || (String(message.file_mime || '').startsWith('video/')));
+
+    const row = document.createElement('div');
+    row.className = `message-row ${cls}`;
+
+    const avatar = document.createElement('img');
+    const senderBadge = getUserBadgeMeta(message.sender_total_points || 0);
+    avatar.className = `msg-avatar ${senderBadge.className}`;
+    avatar.src = message.sender_avatar || '../Images/perfil.png';
+    avatar.alt = message.sender_name || 'avatar';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+
+    if (message.content && !isMediaAttachment) {
+      const textEl = document.createElement('div');
+      textEl.className = 'msg-text';
+      textEl.textContent = message.content;
+      bubble.appendChild(textEl);
+    }
+
+    if (Number(message.has_attachment) === 1) {
+      const attachmentEl = document.createElement('div');
+      attachmentEl.className = 'msg-media small';
+      attachmentEl.textContent = 'Cargando archivo...';
+      bubble.appendChild(attachmentEl);
+      renderAttachment(message, attachmentEl);
+    }
+
+    const footer = document.createElement('div');
+    footer.className = 'msg-footer';
+    footer.innerHTML = `<span class="msg-sender">${escapeHtml(message.sender_name || '')}</span><span class="msg-time">${escapeHtml(formatTime(message.created_at))}</span>`;
+    bubble.appendChild(footer);
+
+    if (mine) {
+      row.appendChild(bubble);
+      row.appendChild(avatar);
+    } else {
+      row.appendChild(avatar);
+      row.appendChild(bubble);
+    }
+
+    boxEl.appendChild(row);
+    scrollBottom();
+  }
+
+  async function renderAttachment(message, targetEl) {
+    try {
+      const response = await apiRequestRaw(`/messages/${message.id}/file`);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const mime = message.file_mime || blob.type || '';
+
+      targetEl.innerHTML = '';
+
+      if (mime.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = message.file_name || 'imagen';
+        targetEl.appendChild(img);
+      } else if (mime.startsWith('video/')) {
+        const video = document.createElement('video');
+        video.src = url;
+        video.controls = true;
+        targetEl.appendChild(video);
+      } else {
+        const link = document.createElement('a');
+        link.href = url;
+        link.textContent = `Descargar ${message.file_name || 'archivo'}`;
+        link.download = message.file_name || 'archivo';
+        link.target = '_blank';
+        targetEl.appendChild(link);
+      }
+    } catch (_) {
+      targetEl.textContent = 'No se pudo cargar el archivo.';
+    }
+  }
+
+  function renderHistory(rows) {
+    if (!rows.length) {
+      boxEl.innerHTML = '<div class="msg other"><span>No hay mensajes todavia.</span></div>';
+      return;
+    }
+
+    boxEl.innerHTML = '';
+    rows.forEach((m) => appendMessage(m));
+  }
+
+  async function loadHistory() {
+    if (!chatId) {
+      boxEl.innerHTML = '<div class="msg other"><span>Chat grupal invalido.</span></div>';
+      return;
+    }
+
+    try {
+      const rows = await apiRequest(`/chats/${chatId}/messages`);
+      renderHistory(rows);
+      scheduleMarkAsRead();
+      scrollBottom();
+    } catch (_) {
+      boxEl.innerHTML = '<div class="msg other"><span>No se pudo cargar historial.</span></div>';
+    }
+  }
+
+  function connectSocket() {
+    if (!window.io || !currentUser || !chatId) return;
+
+    socket = window.io(socketBase, {
+      query: { userId: String(currentUser.id) },
+      transports: ['websocket', 'polling'],
+    });
+
+    socket.on('connect', () => {
+      socket.emit('join_chat', chatId);
+    });
+
+    socket.on('receive_message', (message) => {
+      if (Number(message.chat_id) !== Number(chatId)) return;
+
+      const emptyState = boxEl.querySelector('.msg.other span');
+      if (emptyState && emptyState.textContent === 'No hay mensajes todavia.') {
+        boxEl.innerHTML = '';
+      }
+
+      appendMessage(message);
+      if (Number(message.sender_id) !== Number(currentUser.id)) {
+        scheduleMarkAsRead();
+      }
+    });
+  }
+
+  function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text || !socket || !socket.connected) return;
+
+    socket.emit('send_message', {
+      chatId,
+      senderId: currentUser.id,
+      content: text,
+      messageType: 'text',
+    });
+
+    inputEl.value = '';
+  }
+
+  async function sendFile(file) {
+    if (!file || !socket || !socket.connected) return;
+
+    try {
+      const dataUrl = await fileToDataURL(file);
+      const base64 = String(dataUrl).split(',')[1] || '';
+      const messageType = file.type.startsWith('image/')
+        ? 'image'
+        : file.type.startsWith('video/')
+          ? 'video'
+          : 'file';
+
+      socket.emit('send_message', {
+        chatId,
+        senderId: currentUser.id,
+        content: messageType === 'file' ? file.name : null,
+        messageType,
+        fileBase64: base64,
+        fileName: file.name,
+        fileMime: file.type || 'application/octet-stream',
+        fileSize: file.size,
+      });
+    } catch (_) {
+      alert('No se pudo enviar archivo.');
+    }
+  }
+
+  async function renameGroup() {
+    const name = (groupNameInputEl.value || '').trim();
+    if (!name) return;
+
+    try {
+      await apiRequest(`/chats/${chatId}/name`, {
+        method: 'PATCH',
+        body: { name },
+      });
+      if (titleEl) titleEl.textContent = name;
+      if (groupNameStatusEl) groupNameStatusEl.textContent = 'Nombre de grupo actualizado.';
+      groupNameInputEl.value = '';
+    } catch (error) {
+      if (groupNameStatusEl) {
+        groupNameStatusEl.textContent = error.message || 'No se pudo actualizar el nombre.';
+      }
+    }
+  }
+
+  if (sendBtn) {
+    sendBtn.addEventListener('click', sendMessage);
+  }
+
+  if (inputEl) {
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  }
+
+  if (fileInputEl) {
+    fileInputEl.addEventListener('change', async () => {
+      const file = fileInputEl.files && fileInputEl.files[0];
+      await sendFile(file);
+      fileInputEl.value = '';
+    });
+  }
+
+  if (renameBtn) {
+    renameBtn.addEventListener('click', renameGroup);
+  }
+
+  
+  window.goToGroupTasks = function goToGroupTasks() {
+    if (!chatId) return;
+    window.location.href = `tareas.html?groupId=${encodeURIComponent(chatId)}`;
+  };
+
+  loadHistory().then(connectSocket);
+})();
+

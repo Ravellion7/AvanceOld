@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Eliminar publicación</title>
+  <link rel="stylesheet" href="../CSS/styles.css">
+</head>
+<body class="home-page">
+
+<div class="home-shell">
+  <div id="navbar-container"></div>
+
+  <main class="home-main">
+  <div class="card">
+    <a class="btn btn-ghost" href="perfil.html">← Volver a perfil</a>
+
+    <h2>Eliminar publicación</h2>
+  </div>
+
+  <div class="card">
+    <h3>¿Seguro que deseas eliminar esta publicación?</h3>
+
+    <div class="notice">
+      Esta acción no se puede deshacer
+    </div>
+
+    <div class="item" id="tuPublicacion">
+      <div class="editContent">
+        <img class="avatar" id="previewAvatar" alt="avatar">
+        <div>
+          <strong>Tu publicación</strong>
+          <div class="small">Vista previa</div>
+        </div>
+      </div>
+
+      <p class="post-Content">
+        Estoy armando un grupo para ir al estadio, ¿quién se apunta?
+      </p>
+    </div>
+
+    <div class="footer-actions">
+      <button id="btnDelete" class="btn-secondary">Eliminar</button>
+      <a class="btn btn-vertareas btn-ghost" href="perfil.html">Cancelar</a>
+    </div>
+
+    <p id="msg" class="small"></p>
+  </div>
+  </main>
+</div>
+
+<script src="../JS/navbar.js"></script>
+<script src="../JS/app.js"></script>
+<script>
+  initNavbar('navbar-container', 'perfil');
+  requireLogin();
+  renderHeaderUser();
+  wireLogoutButton();
+
+  const u = getSession();
+  const prevA = document.getElementById("previewAvatar");
+  if(u && u.photo){
+    prevA.src = u.photo;
+  } else {
+    prevA.style.display = "none";
+  }
+
+  document.getElementById("btnDelete").addEventListener("click", ()=>{
+    const msg = document.getElementById("msg");
+    msg.textContent = "Publicación eliminada.";
+    msg.className = "ok";
+
+    setTimeout(()=>{ window.location.href="perfil.html"; }, 900);
+  });
+</script>
+
+</body>
+</html>

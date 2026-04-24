@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inicio</title>
+  <link rel="stylesheet" href="../CSS/styles.css">
+</head>
+<body class="home-page">
+
+<div class="home-shell">
+  <div id="navbar-container"></div>
+
+  <main class="home-main">
+    <div class="layout">
+      <div class="feed">
+        <div class="card">
+          <h2>Para ti</h2>
+
+          <div class="list">
+            <div class="item chat-item">
+              <div class="user-info">
+                <img class="avatar" src="../Images/tigresestadio.jpg" alt="Avatar">
+                <div>
+                  <strong>Usuario</strong>
+                  <div class="small">Hoy</div>
+                </div>
+              </div>
+              <p class="post-content">Listos para el Mundial</p>
+              <img class="post-img" src="../Images/fondo_mexico.jpg" alt="post">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="onlinebar">
+          <strong>Mis amigos</strong>
+          <div class="list" id="friendsSidebarList">
+            <div class="item small">Cargando amigos...</div>
+          </div>
+
+          <strong style="display:block; margin-top:12px;">Solicitudes pendientes</strong>
+          <div class="list" id="pendingRequestsSidebarList">
+            <div class="item small">Cargando solicitudes...</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script src="../JS/navbar.js"></script>
+<script src="../JS/app.js"></script>
+<script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
+<script src="../JS/home.js"></script>
+</body>
+</html>

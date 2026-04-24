@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crear grupo</title>
+  <link rel="stylesheet" href="../CSS/styles.css">
+</head>
+<body class="home-page">
+
+<div class="home-shell">
+  <div id="navbar-container"></div>
+
+  <main class="home-main">
+    <div class="card">
+      <h2>Crear grupo</h2>
+
+      <label for="groupName">Nombre del grupo</label>
+      <input id="groupName" type="text" placeholder="Ej. Ruta de Puntos de Interés">
+
+      <hr>
+
+      <h3>Selecciona integrantes</h3>
+      <p class="small">Lista de amigos:</p>
+      <div id="groupFriendsList" class="list">
+        <div class="item small">Cargando amigos...</div>
+      </div>
+
+      <div class="footer-actions">
+        <button id="btnCreate" >Crear grupo</button>
+      </div>
+
+      <p id="msgGroup"></p>
+    </div>
+  </main>
+</div>
+
+<script src="../JS/navbar.js"></script>
+<script src="../JS/app.js"></script>
+<script src="../JS/crear_grupo.js"></script>
+</body>
+</html>

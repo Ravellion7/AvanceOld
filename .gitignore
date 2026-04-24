@@ -1,0 +1,7 @@
+/backend/.env
+/backend/node_modules
+/backend/tmp_check_amigos.js
+/backend/tmp_check_ua_all.js
+/backend/sql/schema.sql
+/backend/sql/migration_friends.sql
+/backend/sql/fix_deprecated_display_width.sql

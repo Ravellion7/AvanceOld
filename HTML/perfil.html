@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Perfil</title>
+  <link rel="stylesheet" href="../CSS/styles.css">
+</head>
+<body class="home-page">
+
+<div class="home-shell">
+  <div id="navbar-container"></div>
+
+  <main class="home-main">
+
+  <div class="card">
+    <h2>Mi perfil</h2>
+
+    <div style="margin-top: 16px; padding: 16px; background: #f9faf7; border: 1px solid #e5eadf; border-radius: 12px;">
+      <label>Foto de perfil</label>
+      <input id="profilePhotoInput" type="file" accept="image/*">
+
+      <div class="footer-actions" style="margin-top: 12px;">
+        <button id="btnSaveProfilePhoto" type="button">Guardar foto</button>
+      </div>
+      <p id="profilePhotoMsg" class="small"></p>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <h3>Mis publicaciones</h3>
+
+    <div class="list">
+
+      <div class="item chat-item">
+        <div class="editContent">
+          <img class="avatar" id="myAvatar1" alt="avatar">
+          <div>
+            <strong>Tu publicación</strong>
+            <div class="small">Hoy</div>
+          </div>
+        </div>
+
+        <p class="post-content">
+          Hoy fui a conocer puntos de interés cerca del centro y me gustaron mucho.
+        </p>
+
+        <img class="post-img" src="../Images/mtycentro.jpg" alt="demo">
+
+        <div class="post-actions">
+             <a class="btn btn-ghost" href="editar_publicacion.html" >Editar</a>
+            <a class="btn btn-secondary" href="eliminar_publicacion.html">Eliminar</a>
+        </div>
+      </div>
+
+      <div class="item chat-item">
+        <div class="editContent">
+          <img class="avatar" id="myAvatar2" alt="avatar">
+          <div>
+            <strong>Tu publicación</strong>
+            <div class="small">Ayer</div>
+          </div>
+        </div>
+
+        <p class="post-content">
+          Estoy armando un grupo para ir al estadio, ¿quién se apunta?
+        </p>
+
+        <div class="post-actions">
+            <a class="btn btn-ghost" href="editar_publicacion.html">Editar</a>
+            <a class="btn btn-secondary" href="eliminar_publicacion.html">Eliminar</a>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  </main>
+</div>
+
+<script src="../JS/navbar.js"></script>
+<script src="../JS/app.js"></script>
+<script>
+  initNavbar('navbar-container', 'perfil');
+  requireLogin();
+  renderHeaderUser();
+  wireLogoutButton();
+
+  const u = getCurrentUser();
+  const a1 = document.getElementById("myAvatar1");
+  const a2 = document.getElementById("myAvatar2");
+  const photoInput = document.getElementById("profilePhotoInput");
+  const savePhotoBtn = document.getElementById("btnSaveProfilePhoto");
+  const photoMsg = document.getElementById("profilePhotoMsg");
+
+  if(u && u.photo){
+    a1.src = u.photo;
+    a2.src = u.photo;
+  } else {
+    a1.style.display = "none";
+    a2.style.display = "none";
+  }
+
+  savePhotoBtn.addEventListener("click", async () => {
+    const file = photoInput.files && photoInput.files[0];
+    if (!file) {
+      photoMsg.textContent = "Selecciona una imagen primero.";
+      return;
+    }
+
+    try {
+      const dataUrl = await fileToDataURL(file);
+      const value = String(dataUrl || "");
+      const commaIndex = value.indexOf(",");
+      if (commaIndex < 0) {
+        photoMsg.textContent = "No se pudo leer la imagen.";
+        return;
+      }
+
+      const avatarBase64 = value.slice(commaIndex + 1);
+      const avatarMime = file.type || "image/jpeg";
+
+      const result = await apiRequest('/users/me/avatar', {
+        method: 'PATCH',
+        body: {
+          avatarBase64,
+          avatarMime,
+        },
+      });
+
+      updateCurrentUser({ photo: result.photo });
+      renderHeaderUser();
+
+      a1.src = result.photo;
+      a2.src = result.photo;
+      a1.style.display = "inline-block";
+      a2.style.display = "inline-block";
+
+      photoMsg.textContent = "Foto de perfil actualizada.";
+      photoInput.value = "";
+    } catch (error) {
+      photoMsg.textContent = error.message || "No se pudo actualizar la foto.";
+    }
+  });
+</script>
+
+</body>
+</html>

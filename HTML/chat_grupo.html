@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grupo</title>
+  <link rel="stylesheet" href="../CSS/styles.css">
+</head>
+<body class="home-page">
+
+<div class="home-shell">
+  <div id="navbar-container"></div>
+
+  <main class="home-main">
+  <div class="card">
+
+    <a class="btn btn-ghost" href="chats.html">Volver a chats</a>
+
+    <h2 id="chatTitle">Grupo</h2>
+    <div class="footer-actions">
+      <input id="groupNameInput" type="text" placeholder="Nuevo nombre del grupo">
+      <button id="btnRenameGroup">Guardar nombre</button>
+    </div>
+    <p class="small" id="groupNameStatus"></p>
+
+    <div class="chatbox" id="chatBox">
+      <div class="msg other">
+        <span>Cargando historial...</span>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <input id="groupChatInput" type="text" placeholder="Escribe un mensaje...">
+      <button id="btnSendGroupMessage">Enviar</button>
+      <a class="btn-secondary btn btn-vertareas" href="javascript:void(0)" onclick="goToGroupTasks()" >Ver tareas</a>
+    </div>
+
+    <div class="footer-actions">
+      <input id="groupFileInput" type="file" accept="image/*,video/*">
+    </div>
+
+  </div>
+  </main>
+</div>
+
+<script src="../JS/navbar.js"></script>
+<script src="../JS/app.js"></script>
+<script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
+<script src="../JS/chat_group.js"></script>
+
+</body>
+</html>
