@@ -46,3 +46,13 @@ Notas importantes
 - Para conectar Socket.IO en frontend: enviar userId en query al conectar.
 - El backend guarda mensajes en DB y emite en tiempo real.
 - El script SQL usa LONGBLOB para fotos/videos en users, messages y rewards.
+
+Desarrollo con Cloudflare Tunnel
+- Levantar el backend: npm run dev
+- El backend también sirve el frontend desde la raiz del proyecto
+- Para abrirlo en otros dispositivos con un solo tunel:
+	1. Instalar cloudflared
+	2. Ejecutar: cloudflared tunnel --url http://localhost:4000
+	3. Abrir la URL HTTPS que te entrega Cloudflare en cualquier dispositivo
+- Si trabajas con el frontend abierto en un navegador local, el API base sigue apuntando a localhost:4000
+- Si abres la app por el tunel, el frontend toma automaticamente el mismo origen y consume /api desde ahi

@@ -1,5 +1,22 @@
 
-const API_BASE = localStorage.getItem('kickmap_api_base') || 'http://localhost:4000/api';
+function getDefaultApiBase() {
+  if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    const host = window.location.hostname;
+    const port = window.location.port;
+
+    if (host !== 'localhost' && host !== '127.0.0.1' && host !== '') {
+      return `${window.location.origin}/api`;
+    }
+
+    if (port && port !== '5500' && port !== '5501') {
+      return `${window.location.origin}/api`;
+    }
+  }
+
+  return 'http://localhost:4000/api';
+}
+
+const API_BASE = localStorage.getItem('kickmap_api_base') || getDefaultApiBase();
 
 const USER_BADGE_TIERS = [
   {

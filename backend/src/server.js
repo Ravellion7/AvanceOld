@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const { Server } = require('socket.io');
+const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const usersRoutes = require('./routes/usersRoutes');
@@ -26,8 +27,18 @@ const allowedOrigins = [
   'http://127.0.0.1:5501',
 ].filter(Boolean);
 
+const allowedOriginPatterns = [
+  /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i,
+];
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  return allowedOriginPatterns.some((pattern) => pattern.test(origin));
+}
+
 function corsOrigin(origin, callback) {
-  if (!origin || allowedOrigins.includes(origin)) {
+  if (isAllowedOrigin(origin)) {
     callback(null, true);
     return;
   }
@@ -45,8 +56,19 @@ app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: '20mb' }));
 app.use(morgan('dev'));
 
+const projectRoot = path.resolve(__dirname, '..', '..');
+app.use(express.static(path.join(projectRoot, 'HTML')));
+app.use('/HTML', express.static(path.join(projectRoot, 'HTML')));
+app.use('/CSS', express.static(path.join(projectRoot, 'CSS')));
+app.use('/JS', express.static(path.join(projectRoot, 'JS')));
+app.use('/Images', express.static(path.join(projectRoot, 'Images')));
+
 app.get('/api/health', (req, res) => {
   return res.json({ status: 'ok', service: 'kickmap-backend' });
+});
+
+app.get('/', (req, res) => {
+  return res.sendFile(path.join(projectRoot, 'HTML', 'landing.html'));
 });
 
 app.use('/api/auth', authRoutes);
