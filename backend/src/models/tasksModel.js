@@ -1,6 +1,11 @@
-﻿const { query } = require(`../config/db`);
+﻿const { query, pool } = require(`../config/db`);
 
-async function createTask({ chatId, title, description, createdBy, points = 10, dueDate = null, locationUrl = null }) {
+function getRandomTaskPoints() {
+  return Math.floor(Math.random() * 21) + 5;
+}
+
+async function createTask({ chatId, title, description, createdBy, dueDate = null, locationUrl = null }) {
+  const points = getRandomTaskPoints();
   const result = await query(
     `INSERT INTO tasks (chat_id, title, description, created_by, points, location_url, due_date)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -32,22 +37,58 @@ async function getTasksByGroup(groupId) {
 }
 
 async function completeTask({ taskId, userId }) {
-  const taskRows = await query(`SELECT id, points, status FROM tasks WHERE id = ? LIMIT 1`, [taskId]);
-  const task = taskRows[0];
+  const connection = await pool.getConnection();
 
-  if (!task) {
-    throw new Error(`Tarea no encontrada`);
+  try {
+    await connection.beginTransaction();
+
+    const [taskRows] = await connection.execute(
+      `SELECT id, chat_id, points, status FROM tasks WHERE id = ? LIMIT 1 FOR UPDATE`,
+      [taskId]
+    );
+    const task = taskRows[0];
+
+    if (!task) {
+      throw new Error(`Tarea no encontrada`);
+    }
+
+    if (task.status === `done`) {
+      await connection.commit();
+      return { alreadyDone: true, points: task.points };
+    }
+
+    const [memberRows] = await connection.execute(
+      `SELECT user_id FROM chat_members WHERE chat_id = ?`,
+      [task.chat_id]
+    );
+
+    const memberIds = [...new Set(memberRows.map((row) => Number(row.user_id)).filter(Boolean))];
+
+    await connection.execute(
+      `UPDATE tasks SET status = 'done', completed_at = NOW() WHERE id = ?`,
+      [taskId]
+    );
+
+    await connection.execute(
+      `INSERT INTO task_completions (task_id, user_id) VALUES (?, ?)`,
+      [taskId, userId]
+    );
+
+    for (const memberId of memberIds) {
+      await connection.execute(
+        `UPDATE user_points SET total_points = total_points + ? WHERE user_id = ?`,
+        [task.points, memberId]
+      );
+    }
+
+    await connection.commit();
+    return { alreadyDone: false, points: task.points, memberCount: memberIds.length };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
   }
-
-  if (task.status === `done`) {
-    return { alreadyDone: true, points: task.points };
-  }
-
-  await query(`UPDATE tasks SET status = "done", completed_at = NOW() WHERE id = ?`, [taskId]);
-  await query(`INSERT INTO task_completions (task_id, user_id) VALUES (?, ?)`, [taskId, userId]);
-  await query(`UPDATE user_points SET total_points = total_points + ? WHERE user_id = ?`, [task.points, userId]);
-
-  return { alreadyDone: false, points: task.points };
 }
 
 module.exports = {

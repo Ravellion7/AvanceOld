@@ -16,7 +16,6 @@
   const taskTitleInput = document.getElementById(`taskTitleInput`);
   const taskDescInput = document.getElementById(`taskDescInput`);
   const taskLocationInput = document.getElementById(`taskLocationInput`);
-  const taskPointsInput = document.getElementById(`taskPointsInput`);
   const btnAddTask = document.getElementById(`btnAddTask`);
   const btnBackToChats = document.getElementById(`btnBackToChats`);
 
@@ -147,7 +146,6 @@
       const title = taskTitleInput.value.trim();
       const description = taskDescInput.value.trim();
       const locationUrl = taskLocationInput.value.trim();
-      const points = Number(taskPointsInput.value) || 10;
 
       if (!title || !groupId) {
         alert(`Ingresa un nombre para la tarea.`);
@@ -161,7 +159,6 @@
             chatId: groupId,
             title,
             description: description || null,
-            points,
             locationUrl: locationUrl || null,
           },
         });
@@ -169,7 +166,6 @@
         taskTitleInput.value = ``;
         taskDescInput.value = ``;
         taskLocationInput.value = ``;
-        taskPointsInput.value = `10`;
         await loadTasks();
       } catch (error) {
         alert(error.message || `No se pudo crear la tarea.`);

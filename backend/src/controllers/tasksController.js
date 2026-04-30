@@ -7,7 +7,7 @@ const {
 async function create(req, res) {
   try {
     const createdBy = Number(req.user.id);
-    const { chatId, title, description, points, dueDate, locationUrl } = req.body;
+    const { chatId, title, description, dueDate, locationUrl } = req.body;
 
     if (!chatId || !title) {
       return res.status(400).json({ message: `chatId y title son requeridos` });
@@ -18,7 +18,6 @@ async function create(req, res) {
       title,
       description: description || null,
       createdBy,
-      points: points || 10,
       dueDate: dueDate || null,
       locationUrl: locationUrl || null,
     });
