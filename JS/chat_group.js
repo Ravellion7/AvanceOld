@@ -22,9 +22,27 @@
   const socketBase = apiBase.replace(/\/api\/?$/, '');
   let socket = null;
   let readTimeout = null;
+  let currentGroupName = params.get('name') || 'Grupo';
 
   if (titleEl) {
-    titleEl.textContent = groupName;
+    titleEl.textContent = currentGroupName;
+  }
+
+  function updateGroupTitle(name) {
+    const nextName = String(name || '').trim() || 'Grupo';
+    currentGroupName = nextName;
+
+    if (titleEl) {
+      titleEl.textContent = nextName;
+    }
+
+    if (document && document.title !== undefined) {
+      document.title = nextName;
+    }
+
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.set('name', nextName);
+    window.history.replaceState({}, '', nextUrl.toString());
   }
 
   function escapeHtml(text) {
@@ -190,6 +208,19 @@
     }
   }
 
+  async function loadGroupInfo() {
+    if (!chatId) return;
+
+    try {
+      const group = await apiRequest(`/chats/${chatId}`);
+      if (group && group.group_name) {
+        updateGroupTitle(group.group_name);
+      }
+    } catch (_) {
+      updateGroupTitle(currentGroupName);
+    }
+  }
+
   function connectSocket() {
     if (!window.io || !currentUser || !chatId) return;
 
@@ -267,7 +298,7 @@
         method: 'PATCH',
         body: { name },
       });
-      if (titleEl) titleEl.textContent = name;
+      updateGroupTitle(name);
       if (groupNameStatusEl) groupNameStatusEl.textContent = 'Nombre de grupo actualizado.';
       groupNameInputEl.value = '';
     } catch (error) {
@@ -308,6 +339,6 @@
     window.location.href = `tareas.html?groupId=${encodeURIComponent(chatId)}`;
   };
 
-  loadHistory().then(connectSocket);
+  loadGroupInfo().finally(() => loadHistory().then(connectSocket));
 })();
 

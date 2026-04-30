@@ -118,6 +118,21 @@ async function listGroupChatsByUser(userId) {
   );
 }
 
+async function getGroupChatById({ chatId, userId }) {
+  const rows = await query(
+    `SELECT c.id AS chat_id, c.name AS group_name, c.type
+     FROM chats c
+     INNER JOIN chat_members cm ON cm.chat_id = c.id
+     WHERE c.id = ?
+       AND c.type = 'group'
+       AND cm.user_id = ?
+     LIMIT 1`,
+    [chatId, userId]
+  );
+
+  return rows[0] || null;
+}
+
 async function updateGroupName({ chatId, userId, name }) {
   const rows = await query(
     `SELECT c.id
@@ -246,6 +261,7 @@ module.exports = {
   getMessagesByChat,
   listPrivateChatsByUser,
   listGroupChatsByUser,
+  getGroupChatById,
   updateGroupName,
   markChatAsRead,
 };

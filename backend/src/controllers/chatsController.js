@@ -4,6 +4,7 @@ const {
   getMessagesByChat,
   listPrivateChatsByUser,
   listGroupChatsByUser,
+  getGroupChatById,
   updateGroupName,
   markChatAsRead,
 } = require('../models/chatsModel');
@@ -74,6 +75,22 @@ async function listGroup(req, res) {
   }
 }
 
+async function getGroupChat(req, res) {
+  try {
+    const userId = Number(req.user.id);
+    const chatId = Number(req.params.id);
+    const chat = await getGroupChatById({ chatId, userId });
+
+    if (!chat) {
+      return res.status(404).json({ message: 'Grupo no encontrado' });
+    }
+
+    return res.json(chat);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error al obtener el grupo', error: error.message });
+  }
+}
+
 async function renameGroup(req, res) {
   try {
     const userId = Number(req.user.id);
@@ -109,6 +126,7 @@ module.exports = {
   getMessages,
   listPrivate,
   listGroup,
+  getGroupChat,
   renameGroup,
   markRead,
 };
