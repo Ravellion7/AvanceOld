@@ -108,12 +108,38 @@
 
   async function renderAttachment(message, targetEl) {
     try {
+      targetEl.innerHTML = '';
+
+      if (message.file_url) {
+        const mime = String(message.file_mime || '');
+        const url = message.file_url;
+
+        if (mime.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.src = url;
+          img.alt = message.file_name || 'imagen';
+          targetEl.appendChild(img);
+        } else if (mime.startsWith('video/')) {
+          const video = document.createElement('video');
+          video.src = url;
+          video.controls = true;
+          targetEl.appendChild(video);
+        } else {
+          const link = document.createElement('a');
+          link.href = url;
+          link.textContent = `Descargar ${message.file_name || 'archivo'}`;
+          link.download = message.file_name || 'archivo';
+          link.target = '_blank';
+          targetEl.appendChild(link);
+        }
+
+        return;
+      }
+
       const response = await apiRequestRaw(`/messages/${message.id}/file`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const mime = message.file_mime || blob.type || '';
-
-      targetEl.innerHTML = '';
 
       if (mime.startsWith('image/')) {
         const img = document.createElement('img');

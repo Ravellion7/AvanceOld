@@ -28,6 +28,10 @@ Edita `.env` con tus datos de MySQL
 npm run setup-db
 ```
 
+Ese comando reinicia la BD desde el script `backend/sql/init.sql`, dejando vacías las tablas de usuarios, chats, mensajes y tareas, y conservando solo los datos semilla de `achievements` y `rewards`.
+
+Los archivos adjuntos ya no se guardan como `BLOB` en MySQL: ahora se escriben en `Images/uploads/` y en la base de datos se guarda solo su `file_url`.
+
 # Para desarrollo 
 
 ```bash

@@ -80,7 +80,7 @@ CREATE TABLE messages (
   sender_id INT UNSIGNED NOT NULL,
   content TEXT NULL,
   message_type ENUM('text', 'image', 'video', 'audio', 'file', 'location', 'system') NOT NULL DEFAULT 'text',
-  file_data LONGBLOB NULL,
+  file_url VARCHAR(2048) NULL,
   file_name VARCHAR(255) NULL,
   file_mime VARCHAR(120) NULL,
   file_size INT UNSIGNED NULL,

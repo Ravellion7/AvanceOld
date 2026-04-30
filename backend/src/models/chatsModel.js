@@ -143,7 +143,8 @@ async function getMessagesByChat(chatId) {
     `SELECT m.id, m.chat_id, m.sender_id, u.name AS sender_name, m.content,
             m.message_type, m.file_name, m.file_mime, m.file_size,
             COALESCE(up.total_points, 0) AS sender_total_points,
-            CASE WHEN m.file_data IS NULL THEN 0 ELSE 1 END AS has_attachment,
+            m.file_url,
+            CASE WHEN m.file_url IS NULL THEN 0 ELSE 1 END AS has_attachment,
             CASE
               WHEN u.avatar_data IS NULL THEN NULL
               ELSE CONCAT('data:', COALESCE(u.avatar_mime, 'image/jpeg'), ';base64,', REPLACE(REPLACE(TO_BASE64(u.avatar_data), '\n', ''), '\r', ''))

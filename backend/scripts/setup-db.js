@@ -11,6 +11,31 @@ const dbConfig = {
   database: process.env.DB_NAME || 'kickmap_db',
 };
 
+const projectRoot = path.resolve(__dirname, '..', '..', '..');
+const uploadsDir = path.join(projectRoot, 'Images', 'uploads');
+
+async function clearUploadsFolder() {
+  if (!fs.existsSync(uploadsDir)) {
+    await fs.promises.mkdir(uploadsDir, { recursive: true });
+    return;
+  }
+
+  const entries = await fs.promises.readdir(uploadsDir, { withFileTypes: true });
+  await Promise.all(
+    entries
+      .filter((entry) => entry.name !== '.gitkeep')
+      .map(async (entry) => {
+        const entryPath = path.join(uploadsDir, entry.name);
+        if (entry.isDirectory()) {
+          await fs.promises.rm(entryPath, { recursive: true, force: true });
+          return;
+        }
+
+        await fs.promises.unlink(entryPath);
+      })
+  );
+}
+
 async function setupDatabase() {
   let connection;
   try {
@@ -38,6 +63,8 @@ async function setupDatabase() {
     console.log('Ejecutando script SQL');
 
     await connection.query(sqlScript);
+
+    await clearUploadsFolder();
 
     console.log(' Base de datos creada exitosamente');
     console.log('\n Ahora ejecuta: npm run dev');
