@@ -22,8 +22,11 @@
     { key: 'first_avatar_change', title: 'Cambio de look', description: 'Cambia tu foto de perfil por una nueva', value: 3 },
   ];
 
+  const DEFAULT_THEME_KEY = 'verde_clasico';
+
   const THEMES = [
-    { key: 'verde_clasico', name: 'Verde Clásico', color: '#0f8a3a', requiredPoints: 100, description: 'Tema estándar de la plataforma' },
+    { key: 'verde_clasico', name: 'Verde Clásico', color: '#0f8a3a', requiredPoints: 0, description: 'Tema estándar de la plataforma' },
+    { key: 'naranja_suave', name: 'Naranja Suave', color: '#F5A955', requiredPoints: 100, description: 'Tema cálido y suave de la plataforma' },
     { key: 'azul_premium', name: 'Azul Premium', color: '#1e40af', requiredPoints: 150, description: 'Tema azul elegante' },
     { key: 'purpura_oscuro', name: 'Púrpura Oscuro', color: '#6d28d9', requiredPoints: 200, description: 'Tema oscuro y sofisticado' },
   ];
@@ -65,7 +68,11 @@
   function syncAppliedThemeFromStorage() {
     const storedTheme = getStoredProfileTheme();
     if (!storedTheme || !storedTheme.key || !purchasedThemeKeys.has(storedTheme.key)) {
-      appliedThemeKey = null;
+      const defaultTheme = THEMES.find((theme) => theme.key === DEFAULT_THEME_KEY);
+      appliedThemeKey = defaultTheme ? defaultTheme.key : null;
+      if (defaultTheme) {
+        applyProfileTheme(defaultTheme);
+      }
       return;
     }
 
@@ -149,7 +156,7 @@
     const themesList = document.getElementById('themesList');
     themesList.innerHTML = THEMES
       .map((theme) => {
-        const owned = purchasedThemeKeys.has(theme.key);
+        const owned = theme.requiredPoints === 0 || purchasedThemeKeys.has(theme.key);
         const canBuy = userPoints >= theme.requiredPoints;
         const isApplied = owned && appliedThemeKey === theme.key;
 
@@ -248,9 +255,8 @@
   }
 
   function applyTheme(themeKey) {
-    if (!purchasedThemeKeys.has(themeKey)) return;
     const theme = THEMES.find((item) => item.key === themeKey);
-    if (!theme) return;
+    if (!theme || (theme.requiredPoints > 0 && !purchasedThemeKeys.has(themeKey))) return;
 
     appliedThemeKey = themeKey;
     const payload = {

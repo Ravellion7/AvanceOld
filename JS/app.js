@@ -50,6 +50,48 @@ const USER_BADGE_TIERS = [
 ];
 
 const DEFAULT_THEME_COLOR = '#0f8a3a';
+const DEFAULT_NAVBAR_COLOR = '#CAD593';
+
+function hexToRgb(hex) {
+  const normalizedHex = String(hex || '').trim().replace('#', '');
+  if (!/^[0-9a-fA-F]{6}$/.test(normalizedHex)) {
+    return null;
+  }
+
+  return {
+    r: parseInt(normalizedHex.slice(0, 2), 16),
+    g: parseInt(normalizedHex.slice(2, 4), 16),
+    b: parseInt(normalizedHex.slice(4, 6), 16),
+  };
+}
+
+function rgbToHex(r, g, b) {
+  return `#${[r, g, b]
+    .map((value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0'))
+    .join('')}`;
+}
+
+function getPastelThemeColor(hex) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) {
+    return DEFAULT_THEME_COLOR;
+  }
+
+  const blendFactor = 0.62;
+  return rgbToHex(
+    rgb.r + ((255 - rgb.r) * blendFactor),
+    rgb.g + ((255 - rgb.g) * blendFactor),
+    rgb.b + ((255 - rgb.b) * blendFactor)
+  );
+}
+
+function getNavbarThemeColor(theme) {
+  if (!theme || theme.key === 'verde_clasico') {
+    return DEFAULT_NAVBAR_COLOR;
+  }
+
+  return getPastelThemeColor(theme.color || DEFAULT_THEME_COLOR);
+}
 
 function getUserBadgeMeta(points) {
   const totalPoints = Number(points || 0);
@@ -162,6 +204,7 @@ function setStoredProfileTheme(theme) {
 function applyProfileTheme(theme) {
   const color = theme && theme.color ? theme.color : DEFAULT_THEME_COLOR;
   document.documentElement.style.setProperty('--km-theme-color', color);
+  document.documentElement.style.setProperty('--km-navbar-color', getNavbarThemeColor(theme));
 }
 
 function updateCurrentUser(patch) {

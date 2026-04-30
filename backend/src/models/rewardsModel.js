@@ -6,8 +6,15 @@ const PROFILE_THEMES = [
     key: 'verde_clasico',
     name: 'Verde Clásico',
     description: 'Tema estándar de la plataforma',
-    points_cost: 100,
+    points_cost: 0,
     color: '#0f8a3a',
+  },
+  {
+    key: 'naranja_suave',
+    name: 'Naranja Suave',
+    description: 'Tema cálido y suave de la plataforma',
+    points_cost: 100,
+    color: '#F5A955',
   },
   {
     key: 'azul_premium',
@@ -66,7 +73,20 @@ async function ensureRewardRow(conn, rewardItem) {
   );
 
   if (existingRows[0]) {
-    return existingRows[0];
+    const existingRow = existingRows[0];
+    const nextPointsCost = Number(rewardItem.points_cost);
+    if (Number(existingRow.points_cost) !== nextPointsCost || Number(existingRow.is_active) !== 1) {
+      await conn.execute(
+        'UPDATE rewards SET description = ?, points_cost = ?, is_active = 1 WHERE id = ?',
+        [rewardItem.description, nextPointsCost, existingRow.id]
+      );
+    }
+
+    return {
+      ...existingRow,
+      points_cost: nextPointsCost,
+      is_active: 1,
+    };
   }
 
   const [insertResult] = await conn.execute(

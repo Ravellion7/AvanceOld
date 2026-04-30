@@ -2,7 +2,8 @@
 * { box-sizing: border-box; }
 
 :root {
-  --km-theme-color: #0f8a3a;
+  --km-theme-color: #F5A955;
+  --km-navbar-color: #CAD593;
 }
 
 body {
@@ -52,7 +53,7 @@ nav a:active{
 
 nav{
   padding: 8px 10px;
-  background: #CAD593;
+  background: var(--km-navbar-color, #CAD593);
   border-radius: 14px;
 }
 
