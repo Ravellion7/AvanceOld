@@ -6,3 +6,4 @@
 /backend/sql/migration_friends.sql
 /backend/sql/fix_deprecated_display_width.sql
 /Images/uploads
+/backend/backend.log

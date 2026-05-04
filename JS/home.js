@@ -105,9 +105,11 @@
     try {
       currentPostPage = 1;
       const response = await apiRequest('/posts?page=1&limit=5');
+      const posts = Array.isArray(response) ? response : (response.items || []);
       hasMorePosts = response.hasMore || false;
-      renderPosts(response.items || response);
-    } catch (_) {
+      renderPosts(posts);
+    } catch (error) {
+      console.error('Error al cargar publicaciones:', error);
       postsFeedEl.innerHTML = '<div class="item small">No se pudieron cargar publicaciones.</div>';
     }
   }

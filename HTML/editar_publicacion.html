@@ -12,93 +12,65 @@
   <div id="navbar-container"></div>
 
   <main class="home-main">
-  <div class="card">
-    <a class="btn btn-ghost" href="perfil.html">← Volver a perfil</a>
-
-    <h2>Editar publicación</h2>
-  </div>
-
-  <div class="row">
-
     <div class="card">
-      <h3>Editar contenido</h3>
+      <a class="btn btn-ghost" href="perfil.html">← Volver a perfil</a>
 
-      <label for="txtEdit">Texto</label>
-      <textarea id="txtEdit" placeholder="Edita tu texto...">Hoy fui a conocer puntos de interés cerca del centro y me gustaron mucho.</textarea>
-
-      <label for="imgEdit">Cambiar imagen (opcional)</label>
-      <input id="imgEdit" type="file" accept="image/*">
-
-      <div class="footer-actions">
-        <button id="btnSave">Guardar cambios</button>
-        <a class="btn btn-vertareas btn-secondary" href="perfil.html">Cancelar</a>
-      </div>
-
-      <p id="msg" class="small"></p>
+      <h2 class="post-page-title">Editar publicación</h2>
+      <p class="post-page-subtitle">Ajusta el texto, reemplaza la multimedia o quítala por completo antes de guardar.</p>
     </div>
 
-    <div class="card">
-      <h3>Vista previa</h3>
+    <div class="post-editor-grid">
+      <section class="card post-editor-panel">
+        <h3>Editar contenido</h3>
 
-      <div class="item">
-        <div class="editContent">
-          <img class="avatar" id="previewAvatar" alt="avatar">
-          <div>
-            <strong>Tu publicación</strong>
-            <div class="small">Vista previa</div>
-          </div>
+        <label for="txtEdit">Texto</label>
+        <textarea id="txtEdit" placeholder="Escribe el nuevo texto de tu publicación..."></textarea>
+
+        <div>
+          <label for="imgEdit">Cambiar imagen o video</label>
+          <input id="imgEdit" type="file" accept="image/*,video/*">
+          <div class="post-editor-media-note">Puedes reemplazar la multimedia actual con un nuevo archivo.</div>
         </div>
 
-        <p id="previewText"></p>
+        <div class="post-editor-file-actions">
+          <button id="btnRemoveMedia" type="button" class="btn btn-secondary">Quitar imagen/video</button>
+          <button id="btnRestoreMedia" type="button" class="btn btn-ghost">Restaurar multimedia original</button>
+        </div>
 
-        <img id="previewImg" class="post-img" src="../Images/mtycentro.jpg" alt="demo">
-      </div>
+        <div class="post-editor-actions">
+          <button id="btnSave" type="button">Guardar cambios</button>
+          <a id="btnCancel" class="btn btn-ghost" href="perfil.html">Cancelar</a>
+        </div>
 
+        <p id="msg" class="small"></p>
+      </section>
+
+      <section class="card post-editor-panel post-editor-preview">
+        <h3>Vista previa</h3>
+
+        <div class="item post-item">
+          <div class="user-info">
+            <img class="avatar" id="previewAvatar" alt="avatar">
+            <div>
+              <strong id="previewName">Tu publicación</strong>
+              <div class="small" id="previewMeta">Vista previa</div>
+            </div>
+          </div>
+
+          <p id="previewText" class="post-content"></p>
+
+          <div id="previewMediaEmpty" class="small">Sin multimedia adjunta.</div>
+          <img id="previewImg" class="post-img post-preview-media" alt="Vista previa de imagen" style="display:none;">
+          <video id="previewVideo" class="post-media-video post-preview-media" controls style="display:none;"></video>
+        </div>
+      </section>
     </div>
-  </div>
   </main>
 </div>
 
 <script src="../JS/navbar.js"></script>
 <script src="../JS/app.js"></script>
-<script>
-  initNavbar('navbar-container', 'perfil');
-  requireLogin();
-  renderHeaderUser();
-  wireLogoutButton();
-
-  const u = getSession();
-  const prevA = document.getElementById("previewAvatar");
-  if(u && u.photo){
-    prevA.src = u.photo;
-  } else {
-    prevA.style.display = "none";
-  }
-
-  const txt = document.getElementById("txtEdit");
-  const previewText = document.getElementById("previewText");
-  previewText.textContent = txt.value;
-
-  txt.addEventListener("input", ()=>{
-    previewText.textContent = txt.value;
-  });
-
-  const imgEdit = document.getElementById("imgEdit");
-  const previewImg = document.getElementById("previewImg");
-
-  imgEdit.addEventListener("change", async (e)=>{
-    const f = e.target.files[0];
-    if(!f) return;
-    const data = await fileToDataURL(f);
-    previewImg.src = data;
-  });
-
-  document.getElementById("btnSave").addEventListener("click", ()=>{
-    const msg = document.getElementById("msg");
-    msg.textContent = "Cambios guardados.";
-    msg.className = "ok";
-  });
-</script>
+<script src="../JS/editar_publicacion.js"></script>
 
 </body>
 </html>

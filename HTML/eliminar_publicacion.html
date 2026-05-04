@@ -12,67 +12,49 @@
   <div id="navbar-container"></div>
 
   <main class="home-main">
-  <div class="card">
-    <a class="btn btn-ghost" href="perfil.html">← Volver a perfil</a>
+    <div class="card">
+      <a class="btn btn-ghost" href="perfil.html">← Volver a perfil</a>
 
-    <h2>Eliminar publicación</h2>
-  </div>
-
-  <div class="card">
-    <h3>¿Seguro que deseas eliminar esta publicación?</h3>
-
-    <div class="notice">
-      Esta acción no se puede deshacer
+      <h2 class="post-page-title">Eliminar publicación</h2>
+      <p class="post-page-subtitle">Revisa la publicación antes de confirmar la eliminación. Esta acción no se puede deshacer.</p>
     </div>
 
-    <div class="item" id="tuPublicacion">
-      <div class="editContent">
-        <img class="avatar" id="previewAvatar" alt="avatar">
-        <div>
-          <strong>Tu publicación</strong>
-          <div class="small">Vista previa</div>
-        </div>
+    <div class="card post-editor-panel">
+      <h3>¿Seguro que deseas eliminar esta publicación?</h3>
+
+      <div class="post-editor-warning">
+        Si confirmas, la publicación dejará de mostrarse en tu perfil y en el inicio.
       </div>
 
-      <p class="post-Content">
-        Estoy armando un grupo para ir al estadio, ¿quién se apunta?
-      </p>
-    </div>
+      <div class="item post-item">
+        <div class="user-info">
+          <img class="avatar" id="previewAvatar" alt="avatar">
+          <div>
+            <strong id="previewName">Tu publicación</strong>
+            <div class="small" id="previewMeta">Vista previa</div>
+          </div>
+        </div>
 
-    <div class="footer-actions">
-      <button id="btnDelete" class="btn-secondary">Eliminar</button>
-      <a class="btn btn-vertareas btn-ghost" href="perfil.html">Cancelar</a>
-    </div>
+        <p id="previewText" class="post-content"></p>
 
-    <p id="msg" class="small"></p>
-  </div>
+        <div id="previewMediaEmpty" class="small">Sin multimedia adjunta.</div>
+        <img id="previewImg" class="post-img post-preview-media" alt="Vista previa de imagen" style="display:none;">
+        <video id="previewVideo" class="post-media-video post-preview-media" controls style="display:none;"></video>
+      </div>
+
+      <div class="post-editor-actions">
+        <button id="btnDelete" type="button" class="btn btn-secondary">Eliminar</button>
+        <a class="btn btn-ghost" href="perfil.html">Cancelar</a>
+      </div>
+
+      <p id="msg" class="small"></p>
+    </div>
   </main>
 </div>
 
 <script src="../JS/navbar.js"></script>
 <script src="../JS/app.js"></script>
-<script>
-  initNavbar('navbar-container', 'perfil');
-  requireLogin();
-  renderHeaderUser();
-  wireLogoutButton();
-
-  const u = getSession();
-  const prevA = document.getElementById("previewAvatar");
-  if(u && u.photo){
-    prevA.src = u.photo;
-  } else {
-    prevA.style.display = "none";
-  }
-
-  document.getElementById("btnDelete").addEventListener("click", ()=>{
-    const msg = document.getElementById("msg");
-    msg.textContent = "Publicación eliminada.";
-    msg.className = "ok";
-
-    setTimeout(()=>{ window.location.href="perfil.html"; }, 900);
-  });
-</script>
+<script src="../JS/eliminar_publicacion.js"></script>
 
 </body>
 </html>

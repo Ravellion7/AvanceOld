@@ -90,6 +90,85 @@ main {
   border: 1px solid #e2e8f0;
 }
 
+.post-media-video {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  max-height: 480px;
+  border-radius: 14px;
+  margin-top: 12px;
+  border: 1px solid #e2e8f0;
+  background: #000;
+  object-fit: contain;
+}
+
+.post-preview-media {
+  max-width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+}
+
+.post-page-title {
+  margin-bottom: 6px;
+}
+
+.post-page-subtitle {
+  margin-top: 0;
+  color: #5b6472;
+}
+
+.post-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.post-editor-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.post-editor-preview {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfa 100%);
+}
+
+.post-editor-preview .item {
+  margin-top: 6px;
+}
+
+.post-editor-warning {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff4de;
+  border: 1px solid #f3d08b;
+  color: #7b4c00;
+}
+
+.post-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.post-editor-file-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.post-editor-media-note {
+  font-size: 13px;
+  color: #5b6472;
+}
+
+@media (max-width: 860px) {
+  .post-editor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .post-actions{
   display:flex;
   gap:10px;

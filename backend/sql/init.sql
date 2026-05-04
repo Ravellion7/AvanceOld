@@ -84,11 +84,14 @@ CREATE TABLE posts (
   media_mime VARCHAR(120) NULL,
   media_size INT UNSIGNED NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  modified_at TIMESTAMP NULL,
+  deleted_at TIMESTAMP NULL,
   CONSTRAINT fk_posts_user
     FOREIGN KEY (user_id) REFERENCES users(id)
     ON DELETE CASCADE,
   INDEX idx_posts_created (created_at),
-  INDEX idx_posts_user_created (user_id, created_at)
+  INDEX idx_posts_user_created (user_id, created_at),
+  INDEX idx_posts_deleted (deleted_at)
 ) ENGINE=InnoDB;
 
 CREATE TABLE messages (
