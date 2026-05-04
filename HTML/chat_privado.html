@@ -17,6 +17,14 @@
 
     <h2 id="chatTitle">Chat</h2>
     
+    <div style="margin: 10px 0; display: flex; gap: 10px; align-items: center;">
+      <label>
+        <input type="checkbox" id="encryptionToggle" style="cursor: pointer;">
+        Encriptación
+      </label>
+      <span id="encryptionStatus" style="font-size: 12px; color: #666;"></span>
+    </div>
+    
     <div class="chatbox" id="chatMessages">
       <div class="msg other">
         <span>Cargando historial...</span>
@@ -43,7 +51,8 @@
 <script src="../JS/navbar.js"></script>
 <script src="../JS/app.js"></script>
 <script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyASvgpTvcKC3A8FvzPWNfv6d24gzPrhzB4"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyASvgpTvcKC3A8FvzPWNfv6d24gzPrhzB4&loading=async"></script>
+<script src="../JS/encryption.js"></script>
 <script src="../JS/chat_private.js"></script>
 </body>
 </html>

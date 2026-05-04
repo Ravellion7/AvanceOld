@@ -5,9 +5,10 @@ const {
 	getMessages,
 	listPrivate,
 	listGroup,
-	getGroupChat,
+	getChatInfo,
 	renameGroup,
 	markRead,
+	enableEncryption,
 } = require('../controllers/chatsController');
 const authMiddleware = require('../middleware/auth');
 
@@ -17,9 +18,10 @@ router.get('/private', authMiddleware, listPrivate);
 router.get('/group', authMiddleware, listGroup);
 router.post('/private', authMiddleware, createPrivate);
 router.post('/group', authMiddleware, createGroup);
-router.get('/:id', authMiddleware, getGroupChat);
+router.get('/:id', authMiddleware, getChatInfo);
 router.patch('/:id/name', authMiddleware, renameGroup);
 router.post('/:id/read', authMiddleware, markRead);
+router.patch('/:id/encryption', authMiddleware, enableEncryption);
 router.get('/:id/messages', authMiddleware, getMessages);
 
 module.exports = router;

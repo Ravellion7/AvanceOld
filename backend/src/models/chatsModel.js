@@ -255,6 +255,42 @@ async function markChatAsRead(chatId, userId) {
   return { chatId, userId };
 }
 
+async function updateEncryptionStatus({ chatId, userId, enable, salt }) {
+  // Verificar que el usuario sea miembro del chat
+  const rows = await query(
+    'SELECT id FROM chat_members WHERE chat_id = ? AND user_id = ?',
+    [chatId, userId]
+  );
+
+  if (!rows[0]) {
+    throw new Error('No tienes permisos para modificar este chat');
+  }
+
+  try {
+    // Actualizar estado de encriptación
+    await query(
+      'UPDATE chats SET encryption_enabled = ?, encryption_salt = ? WHERE id = ?',
+      [enable ? 1 : 0, salt, chatId]
+    );
+  } catch (err) {
+    // Si hay error en las columnas, probablemente no existen
+    console.error('Error updating encryption:', err.message);
+    throw new Error('Las columnas de encriptación no existen en la BD. Ejecuta el script SQL: ALTER TABLE chats ADD COLUMN encryption_enabled TINYINT UNSIGNED NOT NULL DEFAULT 0; ALTER TABLE chats ADD COLUMN encryption_salt VARCHAR(64) NULL;');
+  }
+
+  // Obtener estado actualizado
+  const chatRows = await query(
+    'SELECT encryption_enabled, encryption_salt FROM chats WHERE id = ?',
+    [chatId]
+  );
+
+  return {
+    chatId,
+    encryptionEnabled: chatRows[0].encryption_enabled === 1,
+    encryptionSalt: enable ? chatRows[0].encryption_salt : null,
+  };
+}
+
 module.exports = {
   createPrivateChat,
   createGroupChat,
@@ -264,4 +300,5 @@ module.exports = {
   getGroupChatById,
   updateGroupName,
   markChatAsRead,
+  updateEncryptionStatus,
 };

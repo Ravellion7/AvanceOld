@@ -7,10 +7,12 @@ const {
   getGroupChatById,
   updateGroupName,
   markChatAsRead,
+  updateEncryptionStatus,
 } = require('../models/chatsModel');
 const {
   awardFirstGroupCreated,
 } = require('../models/achievementsModel');
+const { query } = require('../config/db');
 
 async function createPrivate(req, res) {
   try {
@@ -91,6 +93,35 @@ async function getGroupChat(req, res) {
   }
 }
 
+async function getChatInfo(req, res) {
+  try {
+    const userId = Number(req.user.id);
+    const chatId = Number(req.params.id);
+
+    // Verificar que el usuario es miembro del chat
+    const memberRows = await query(
+      'SELECT c.*, cm.role FROM chats c INNER JOIN chat_members cm ON cm.chat_id = c.id WHERE c.id = ? AND cm.user_id = ?',
+      [chatId, userId]
+    );
+
+    if (!memberRows[0]) {
+      return res.status(404).json({ message: 'Chat no encontrado' });
+    }
+
+    const chat = memberRows[0];
+    return res.json({
+      id: chat.id,
+      type: chat.type,
+      name: chat.name,
+      group_name: chat.name,
+      encryption_enabled: chat.encryption_enabled || 0,
+      encryption_salt: chat.encryption_salt || null,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error al obtener info del chat', error: error.message });
+  }
+}
+
 async function renameGroup(req, res) {
   try {
     const userId = Number(req.user.id);
@@ -120,6 +151,26 @@ async function markRead(req, res) {
   }
 }
 
+async function enableEncryption(req, res) {
+  try {
+    const userId = Number(req.user.id);
+    const chatId = Number(req.params.id);
+    const { enable } = req.body;
+
+    if (typeof enable !== 'boolean') {
+      return res.status(400).json({ message: 'enable es requerido y debe ser booleano' });
+    }
+
+    // Generar salt aleatorio (hex string de 32 caracteres)
+    const salt = enable ? require('crypto').randomBytes(16).toString('hex') : null;
+
+    const result = await updateEncryptionStatus({ chatId, userId, enable, salt });
+    return res.json(result);
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
 module.exports = {
   createPrivate,
   createGroup,
@@ -127,6 +178,8 @@ module.exports = {
   listPrivate,
   listGroup,
   getGroupChat,
+  getChatInfo,
   renameGroup,
   markRead,
+  enableEncryption,
 };

@@ -15,6 +15,8 @@
   const fileInputEl = document.getElementById('privateFileInput');
   const callStatusEl = document.getElementById('callStatus');
   const typingStatusEl = document.getElementById('typingStatus');
+  const encryptionToggleEl = document.getElementById('encryptionToggle');
+  const encryptionStatusEl = document.getElementById('encryptionStatus');
   const currentUser = getCurrentUser();
   const apiBase = getApiBase();
   const socketBase = apiBase.replace(/\/api\/?$/, '');
@@ -22,6 +24,8 @@
   let typingTimeout = null;
   let isTyping = false;
   let readTimeout = null;
+  let encryptionEnabled = false;
+  let encryptionSalt = null;
 
   if (titleEl) {
     titleEl.textContent = `Chat con ${otherName}`;
@@ -69,11 +73,25 @@
     }, 120);
   }
 
-  function appendMessage(message) {
+  async function appendMessage(message) {
     const mine = currentUser && Number(message.sender_id) === Number(currentUser.id);
     const cls = mine ? 'me' : 'other';
     const isMediaAttachment = Number(message.has_attachment) === 1 && ((String(message.file_mime || '').startsWith('image/')) || (String(message.file_mime || '').startsWith('video/')));
     const isLocationMessage = String(message.message_type || '').toLowerCase() === 'location';
+
+    // Si el mensaje está encriptado y encriptación está habilitada, desencriptar
+    let displayContent = message.content;
+    if (Number(message.is_encrypted) === 1 && encryptionEnabled && encryptionSalt) {
+      try {
+        const decrypted = await EncryptionUtils.decrypt(message.content, encryptionSalt, chatId);
+        if (decrypted) {
+          displayContent = decrypted;
+        }
+      } catch (error) {
+        console.error('Error desencriptando:', error);
+        displayContent = '[Mensaje encriptado]';
+      }
+    }
 
     const wrapper = document.createElement('div');
     wrapper.className = `message-row ${cls}`;
@@ -92,10 +110,10 @@
       locationEl.className = 'msg-location';
       locationEl.innerHTML = `<iframe src="${escapeHtml(message.location_url)}" width="280" height="200" style="border:none;border-radius:10px;" allowfullscreen="" loading="lazy"></iframe>`;
       bubble.appendChild(locationEl);
-    } else if (message.content && !isMediaAttachment) {
+    } else if (displayContent && !isMediaAttachment) {
       const textEl = document.createElement('div');
       textEl.className = 'msg-text';
-      textEl.textContent = message.content;
+      textEl.textContent = displayContent;
       bubble.appendChild(textEl);
     }
 
@@ -182,14 +200,16 @@
     }
   }
 
-  function renderMessages(rows) {
+  async function renderMessages(rows) {
     if (!rows.length) {
       messagesEl.innerHTML = '<div class="msg other"><span>No hay mensajes todavia.</span></div>';
       return;
     }
 
     messagesEl.innerHTML = '';
-    rows.forEach((m) => appendMessage(m));
+    for (const m of rows) {
+      await appendMessage(m);
+    }
   }
 
   async function loadHistory() {
@@ -205,6 +225,30 @@
       scrollToBottom();
     } catch (_) {
       messagesEl.innerHTML = '<div class="msg other"><span>No se pudo cargar historial.</span></div>';
+    }
+  }
+
+  async function loadEncryptionStatus() {
+    if (!chatId) return;
+
+    try {
+      const response = await apiRequest(`/chats/${chatId}`);
+      encryptionEnabled = Number(response.encryption_enabled) === 1;
+      encryptionSalt = response.encryption_salt;
+      updateEncryptionUI();
+    } catch (_) {
+      encryptionEnabled = false;
+      encryptionSalt = null;
+      updateEncryptionUI();
+    }
+  }
+
+  function updateEncryptionUI() {
+    if (encryptionToggleEl) {
+      encryptionToggleEl.checked = encryptionEnabled;
+    }
+    if (encryptionStatusEl) {
+      encryptionStatusEl.textContent = encryptionEnabled ? 'Encriptado' : '';
     }
   }
 
@@ -307,7 +351,7 @@
     });
   }
 
-  function sendCurrentMessage() {
+  async function sendCurrentMessage() {
     if (!socket || !socket.connected) {
       notifyWarning('No hay conexion en tiempo real en este momento.');
       return;
@@ -316,13 +360,31 @@
     const text = inputEl ? inputEl.value.trim() : '';
     if (!text) return;
 
+    let contentToSend = text;
+    let isEncrypted = false;
+
+    // Si la encriptación está habilitada, encriptar el contenido
+    if (encryptionEnabled && encryptionSalt) {
+      try {
+        const encrypted = await EncryptionUtils.encrypt(text, encryptionSalt, chatId);
+        if (encrypted) {
+          contentToSend = encrypted;
+          isEncrypted = true;
+        }
+      } catch (error) {
+        notifyError('Error al encriptar mensaje.');
+        return;
+      }
+    }
+
     socket.emit(
       'send_message',
       {
         chatId,
         senderId: currentUser.id,
-        content: text,
+        content: contentToSend,
         messageType: 'text',
+        isEncrypted,
       },
       (response) => {
         if (!response || !response.ok) {
@@ -414,6 +476,27 @@
     btnLocation.addEventListener('click', sendLocation);
   }
 
+  if (encryptionToggleEl) {
+    encryptionToggleEl.addEventListener('change', async () => {
+      const enable = encryptionToggleEl.checked;
+
+      try {
+        const response = await apiRequest(`/chats/${chatId}/encryption`, {
+          method: 'PATCH',
+          body: { enable },
+        });
+
+        encryptionEnabled = response.encryptionEnabled;
+        encryptionSalt = response.encryptionSalt;
+        updateEncryptionUI();
+        notifyWarning(enable ? 'Encriptación habilitada' : 'Encriptación deshabilitada');
+      } catch (error) {
+        notifyError('Error al cambiar estado de encriptación');
+        encryptionToggleEl.checked = !enable; // Revertir cambio
+      }
+    });
+  }
+
   if (inputEl) {
     inputEl.addEventListener('input', () => {
       emitTypingStart();
@@ -443,7 +526,7 @@
     });
   }
 
-  loadHistory().then(() => {
+  Promise.all([loadEncryptionStatus(), loadHistory()]).then(() => {
     connectSocket();
   });
 })();
