@@ -362,6 +362,19 @@ button:hover, .btn:hover { filter: brightness(0.95); }
   margin-top: 8px;
 }
 
+.msg-location {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.msg-location iframe {
+  display: block;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 .msg-media img,
 .msg-media video {
   display: block;

@@ -79,6 +79,7 @@
     const mine = currentUser && Number(message.sender_id) === Number(currentUser.id);
     const cls = mine ? 'me' : 'other';
     const isMediaAttachment = Number(message.has_attachment) === 1 && ((String(message.file_mime || '').startsWith('image/')) || (String(message.file_mime || '').startsWith('video/')));
+    const isLocationMessage = String(message.message_type || '').toLowerCase() === 'location';
 
     const row = document.createElement('div');
     row.className = `message-row ${cls}`;
@@ -92,7 +93,12 @@
     const bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
 
-    if (message.content && !isMediaAttachment) {
+    if (isLocationMessage && message.location_url) {
+      const locationEl = document.createElement('div');
+      locationEl.className = 'msg-location';
+      locationEl.innerHTML = `<iframe src="${escapeHtml(message.location_url)}" width="280" height="200" style="border:none;border-radius:10px;" allowfullscreen="" loading="lazy"></iframe>`;
+      bubble.appendChild(locationEl);
+    } else if (message.content && !isMediaAttachment) {
       const textEl = document.createElement('div');
       textEl.className = 'msg-text';
       textEl.textContent = message.content;
@@ -289,6 +295,46 @@
     }
   }
 
+  async function sendLocation() {
+    if (!socket || !socket.connected) {
+      notifyWarning('No hay conexion en tiempo real en este momento.');
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      notifyError('Tu navegador no soporta acceso a la ubicación.');
+      return;
+    }
+
+    notifyWarning('Solicitando acceso a tu ubicación...');
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const locationUrl = `https://maps.google.com/maps?q=${latitude},${longitude}&z=17&output=embed`;
+
+        socket.emit('send_message', {
+          chatId,
+          senderId: currentUser.id,
+          content: `Ubicación: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+          messageType: 'location',
+          locationUrl,
+        });
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          notifyError('Debes permitir el acceso a tu ubicación.');
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          notifyError('Ubicación no disponible.');
+        } else {
+          notifyError('No se pudo obtener la ubicación.');
+        }
+      }
+    );
+  }
+
+  const btnSendGroupLocation = document.getElementById('btnSendGroupLocation');
+
   async function renameGroup() {
     const name = (groupNameInputEl.value || '').trim();
     if (!name) return;
@@ -310,6 +356,10 @@
 
   if (sendBtn) {
     sendBtn.addEventListener('click', sendMessage);
+  }
+
+  if (btnSendGroupLocation) {
+    btnSendGroupLocation.addEventListener('click', sendLocation);
   }
 
   if (inputEl) {
