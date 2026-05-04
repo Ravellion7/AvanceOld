@@ -14,6 +14,7 @@ const friendsRoutes = require('./routes/friendsRoutes');
 const messagesRoutes = require('./routes/messagesRoutes');
 const tasksRoutes = require('./routes/tasksRoutes');
 const rewardsRoutes = require('./routes/rewardsRoutes');
+const postsRoutes = require('./routes/postsRoutes');
 const registerSocketHandlers = require('./sockets');
 
 const app = express();
@@ -81,6 +82,7 @@ app.use('/api/friends', friendsRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/rewards', rewardsRoutes);
+app.use('/api/posts', postsRoutes);
 
 registerSocketHandlers(io);
 

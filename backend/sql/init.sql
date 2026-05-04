@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS user_achievements;
 DROP TABLE IF EXISTS task_completions;
 DROP TABLE IF EXISTS tasks;
 DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS chat_members;
 DROP TABLE IF EXISTS chats;
 DROP TABLE IF EXISTS rewards;
@@ -73,6 +74,22 @@ CREATE TABLE chat_members (
 ) ENGINE=InnoDB;
 
 CREATE INDEX idx_chat_members_user ON chat_members(user_id);
+
+CREATE TABLE posts (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  content VARCHAR(250) NULL,
+  media_url VARCHAR(2048) NULL,
+  media_name VARCHAR(255) NULL,
+  media_mime VARCHAR(120) NULL,
+  media_size INT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_posts_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE,
+  INDEX idx_posts_created (created_at),
+  INDEX idx_posts_user_created (user_id, created_at)
+) ENGINE=InnoDB;
 
 CREATE TABLE messages (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

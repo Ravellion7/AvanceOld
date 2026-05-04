@@ -15,20 +15,32 @@
     <div class="layout">
       <div class="feed">
         <div class="card">
-          <h2>Para ti</h2>
-
-          <div class="list">
-            <div class="item chat-item">
-              <div class="user-info">
-                <img class="avatar" src="../Images/tigresestadio.jpg" alt="Avatar">
-                <div>
-                  <strong>Usuario</strong>
-                  <div class="small">Hoy</div>
-                </div>
+          <div class="post-composer" id="postComposerBox">
+            <div class="post-composer-header">
+              <img class="avatar" id="postComposerAvatar" src="../Images/perfil.png" alt="Avatar del usuario">
+              <div class="post-composer-user">
+                <strong id="postComposerName">Usuario</strong>
               </div>
-              <p class="post-content">Listos para el Mundial</p>
-              <img class="post-img" src="../Images/fondo_mexico.jpg" alt="post">
             </div>
+
+            <div class="post-composer-body">
+              <textarea id="postContentInput" maxlength="250" placeholder="¿Qué quieres compartir hoy?"></textarea>
+              <div class="post-composer-counter" id="postCharCounter">0/250</div>
+              <div class="post-composer-file" id="postSelectedMedia">Sin archivo adjunto</div>
+            </div>
+
+            <div class="post-composer-actions">
+              <button type="button" class="btn btn-ghost" id="btnAttachMedia">Adjuntar imagen/video</button>
+              <input id="postMediaInput" type="file" accept="image/*,video/*" hidden>
+              <button type="button" id="btnCreatePost">Publicar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Para ti</h2>
+          <div class="list" id="postsFeedList">
+            <div class="item small">Cargando publicaciones...</div>
           </div>
         </div>
       </div>
