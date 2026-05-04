@@ -970,11 +970,44 @@ main.home-main{
 .home-page .post-item .post-media-video {
   display: block;
   width: 100%;
+  max-width: 480px;
+  max-height: 480px;
   border-radius: 14px;
   margin-top: 12px;
   border: 1px solid #e2e8f0;
-  max-height: 420px;
   background: #000;
+  object-fit: contain;
+}
+
+.home-page .post-item .post-img {
+  max-width: 480px;
+  max-height: 480px;
+  object-fit: contain;
+}
+
+.posts-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  font-size: 14px;
+  color: #666;
+}
+
+.posts-loader.loading::after {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: 8px;
+  border: 2px solid #ddd;
+  border-top: 2px solid var(--km-theme-color);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 980px) {

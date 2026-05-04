@@ -109,12 +109,14 @@ async function createPost({
   return rows[0] || null;
 }
 
-async function listPosts(limit = 30) {
+async function listPosts(page = 1, limit = 5) {
   await ensurePostsTableExists();
 
-  const safeLimit = Math.max(1, Math.min(100, Number(limit) || 30));
+  const safePage = Math.max(1, Number(page) || 1);
+  const safeLimit = Math.max(1, Math.min(100, Number(limit) || 5));
+  const offset = (safePage - 1) * safeLimit;
 
-  return query(
+  const rows = await query(
     `SELECT p.id,
             p.user_id,
             u.name AS user_name,
@@ -131,8 +133,19 @@ async function listPosts(limit = 30) {
      FROM posts p
      INNER JOIN users u ON u.id = p.user_id
      ORDER BY p.created_at DESC, p.id DESC
-     LIMIT ${safeLimit}`
+     LIMIT ${safeLimit} OFFSET ${offset}`
   );
+
+  const countResult = await query('SELECT COUNT(*) AS total FROM posts');
+  const total = Number(countResult[0]?.total || 0);
+
+  return {
+    items: rows,
+    page: safePage,
+    limit: safeLimit,
+    total,
+    hasMore: offset + safeLimit < total,
+  };
 }
 
 module.exports = {

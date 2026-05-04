@@ -4,9 +4,10 @@ const MAX_POST_LENGTH = 250;
 
 async function getPosts(req, res) {
   try {
-    const limit = Number(req.query.limit || 30);
-    const rows = await listPosts(limit);
-    return res.json(rows);
+    const page = Math.max(1, Number(req.query.page || 1));
+    const limit = Math.max(1, Math.min(100, Number(req.query.limit || 5)));
+    const result = await listPosts(page, limit);
+    return res.json(result);
   } catch (error) {
     return res.status(500).json({ message: 'Error al obtener publicaciones', error: error.message });
   }

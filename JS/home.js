@@ -22,6 +22,9 @@
   let selectedPostMediaFile = null;
 
   const MAX_POST_CHARS = 250;
+  let currentPostPage = 1;
+  let isLoadingMorePosts = false;
+  let hasMorePosts = true;
 
   function escapeHtml(text) {
     return String(text || '')
@@ -100,11 +103,77 @@
     if (!postsFeedEl) return;
 
     try {
-      const rows = await apiRequest('/posts?limit=40');
-      renderPosts(rows);
+      currentPostPage = 1;
+      const response = await apiRequest('/posts?page=1&limit=5');
+      hasMorePosts = response.hasMore || false;
+      renderPosts(response.items || response);
     } catch (_) {
       postsFeedEl.innerHTML = '<div class="item small">No se pudieron cargar publicaciones.</div>';
     }
+  }
+
+  async function loadMorePosts() {
+    if (!postsFeedEl || isLoadingMorePosts || !hasMorePosts) return;
+
+    isLoadingMorePosts = true;
+    currentPostPage += 1;
+
+    try {
+      const response = await apiRequest(`/posts?page=${currentPostPage}&limit=5`);
+      const moreItems = response.items || (Array.isArray(response) ? response : []);
+
+      if (moreItems && moreItems.length > 0) {
+        moreItems.forEach((post) => {
+          const avatar = post.user_avatar || '../Images/perfil.png';
+          const contentHtml = post.content
+            ? `<p class="post-content">${escapeHtml(post.content)}</p>`
+            : '';
+
+          const card = document.createElement('div');
+          card.className = 'item chat-item post-item';
+          card.innerHTML = `
+            <div class="user-info">
+              <img class="avatar" src="${avatar}" alt="Avatar de ${escapeHtml(post.user_name)}">
+              <div>
+                <strong>${escapeHtml(post.user_name)}</strong>
+                <div class="small">${escapeHtml(formatPostDate(post.created_at))}</div>
+              </div>
+            </div>
+            ${contentHtml}
+            ${renderPostMedia(post)}
+          `;
+
+          postsFeedEl.appendChild(card);
+        });
+      }
+
+      hasMorePosts = response.hasMore || false;
+    } catch (error) {
+      notifyError('No se pudieron cargar más publicaciones.');
+    } finally {
+      isLoadingMorePosts = false;
+    }
+  }
+
+  function setupInfiniteScroll() {
+    if (!postsFeedEl) return;
+
+    const scrollObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !isLoadingMorePosts && hasMorePosts) {
+            loadMorePosts();
+          }
+        });
+      },
+      { rootMargin: '200px' }
+    );
+
+    const sentinel = document.createElement('div');
+    sentinel.className = 'posts-loader';
+    sentinel.id = 'postsScrollSentinel';
+    postsFeedEl.parentElement?.appendChild(sentinel);
+    scrollObserver.observe(sentinel);
   }
 
   function prependPost(post) {
@@ -385,6 +454,7 @@
 
   wirePostComposer();
   loadPosts();
+  setupInfiniteScroll();
   loadFriends();
   loadPending();
   connectStatusSocket();
