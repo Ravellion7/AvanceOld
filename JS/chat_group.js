@@ -285,7 +285,7 @@
         fileSize: file.size,
       });
     } catch (_) {
-      alert('No se pudo enviar archivo.');
+      notifyError('No se pudo enviar archivo.');
     }
   }
 

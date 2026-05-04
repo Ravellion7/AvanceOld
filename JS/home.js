@@ -81,7 +81,7 @@
           await apiRequest(`/friends/request/${requestId}/accept`, { method: 'PATCH' });
           await Promise.all([loadPending(), loadFriends()]);
         } catch (error) {
-          alert(error.message || 'No se pudo aceptar solicitud.');
+          notifyError(error.message || 'No se pudo aceptar solicitud.');
         }
       });
     });
@@ -93,7 +93,7 @@
           await apiRequest(`/friends/request/${requestId}/reject`, { method: 'PATCH' });
           await loadPending();
         } catch (error) {
-          alert(error.message || 'No se pudo rechazar solicitud.');
+          notifyError(error.message || 'No se pudo rechazar solicitud.');
         }
       });
     });

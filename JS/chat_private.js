@@ -303,7 +303,7 @@
 
   function sendCurrentMessage() {
     if (!socket || !socket.connected) {
-      alert('No hay conexion en tiempo real en este momento.');
+      notifyWarning('No hay conexion en tiempo real en este momento.');
       return;
     }
 
@@ -320,7 +320,7 @@
       },
       (response) => {
         if (!response || !response.ok) {
-          alert((response && response.error) || 'No se pudo enviar mensaje.');
+          notifyError((response && response.error) || 'No se pudo enviar mensaje.');
           return;
         }
         inputEl.value = '';
@@ -332,7 +332,7 @@
   async function sendFile(file) {
     if (!file) return;
     if (!socket || !socket.connected) {
-      alert('No hay conexion en tiempo real en este momento.');
+      notifyWarning('No hay conexion en tiempo real en este momento.');
       return;
     }
 
@@ -356,7 +356,7 @@
         fileSize: file.size,
       });
     } catch (_) {
-      alert('No se pudo enviar el archivo.');
+      notifyError('No se pudo enviar el archivo.');
     }
   }
 

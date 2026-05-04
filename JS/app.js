@@ -51,6 +51,81 @@ const USER_BADGE_TIERS = [
 
 const DEFAULT_THEME_COLOR = '#0f8a3a';
 const DEFAULT_NAVBAR_COLOR = '#CAD593';
+const SWEETALERT2_CDN = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+
+let sweetAlertLoaderPromise = null;
+
+function ensureSweetAlert2() {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  if (window.Swal) return Promise.resolve(window.Swal);
+  if (sweetAlertLoaderPromise) return sweetAlertLoaderPromise;
+
+  sweetAlertLoaderPromise = new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = SWEETALERT2_CDN;
+    script.async = true;
+    script.onload = () => resolve(window.Swal || null);
+    script.onerror = () => resolve(null);
+    document.head.appendChild(script);
+  });
+
+  return sweetAlertLoaderPromise;
+}
+
+function showNotification(options = {}) {
+  const defaults = {
+    icon: 'info',
+    title: '',
+    text: '',
+    toast: true,
+    position: 'top-end',
+    timer: 2500,
+    timerProgressBar: true,
+    showConfirmButton: false,
+  };
+
+  const config = {
+    ...defaults,
+    ...options,
+  };
+
+  if (typeof window !== 'undefined' && window.Swal) {
+    return window.Swal.fire(config);
+  }
+
+  const fallbackMessage = config.text || config.title || 'Notificacion';
+  if (typeof window !== 'undefined') {
+    window.alert(fallbackMessage);
+  }
+
+  return Promise.resolve();
+}
+
+function notifySuccess(message, options = {}) {
+  return showNotification({
+    icon: 'success',
+    title: message,
+    ...options,
+  });
+}
+
+function notifyError(message, options = {}) {
+  return showNotification({
+    icon: 'error',
+    title: message,
+    timer: 3500,
+    ...options,
+  });
+}
+
+function notifyWarning(message, options = {}) {
+  return showNotification({
+    icon: 'warning',
+    title: message,
+    timer: 3200,
+    ...options,
+  });
+}
 
 function hexToRgb(hex) {
   const normalizedHex = String(hex || '').trim().replace('#', '');
@@ -327,3 +402,4 @@ async function apiRequestRaw(path, options = {}) {
 }
 
 applyProfileTheme(getStoredProfileTheme());
+ensureSweetAlert2();

@@ -268,7 +268,7 @@
           const url = `chat_privado.html?chatId=${encodeURIComponent(result.chatId)}&userId=${encodeURIComponent(userB)}&name=${encodeURIComponent(userName)}`;
           window.location.href = url;
         } catch (error) {
-          alert(error.message || 'No se pudo crear chat privado.');
+          notifyError(error.message || 'No se pudo crear chat privado.');
         }
       });
     });
@@ -314,10 +314,10 @@
             method: 'POST',
             body: { receiverId },
           });
-          alert('Solicitud enviada.');
+          notifySuccess('Solicitud enviada.');
           await loadDiscover(discoverTerm, discoverPage);
         } catch (error) {
-          alert(error.message || 'No se pudo enviar solicitud.');
+          notifyError(error.message || 'No se pudo enviar solicitud.');
         }
       });
     });
@@ -394,7 +394,7 @@
       try {
         await loadDiscover(discoverInputEl.value.trim(), 1);
       } catch (error) {
-        alert(error.message || 'No se pudo buscar usuarios.');
+        notifyError(error.message || 'No se pudo buscar usuarios.');
       }
     });
   }

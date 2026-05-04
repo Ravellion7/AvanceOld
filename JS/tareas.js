@@ -121,7 +121,7 @@
           await apiRequest(`/tasks/${taskId}/complete`, { method: `PATCH` });
           await loadTasks();
         } catch (error) {
-          alert(error.message || `No se pudo marcar la tarea como hecha.`);
+          notifyError(error.message || `No se pudo marcar la tarea como hecha.`);
         }
       });
     });
@@ -148,7 +148,7 @@
       const locationUrl = taskLocationInput.value.trim();
 
       if (!title || !groupId) {
-        alert(`Ingresa un nombre para la tarea.`);
+        notifyWarning(`Ingresa un nombre para la tarea.`);
         return;
       }
 
@@ -168,7 +168,7 @@
         taskLocationInput.value = ``;
         await loadTasks();
       } catch (error) {
-        alert(error.message || `No se pudo crear la tarea.`);
+        notifyError(error.message || `No se pudo crear la tarea.`);
       }
     });
 
@@ -186,7 +186,7 @@
         const groupData = await apiRequest(`/chats/group`);
         const selectedGroup = groupData.find((g) => Number(g.chat_id) === groupId);
         if (!selectedGroup) {
-          alert(`Grupo no encontrado.`);
+          notifyWarning(`Grupo no encontrado.`);
           window.location.href = `tareas.html`;
           return;
         }

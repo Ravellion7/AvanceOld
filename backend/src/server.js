@@ -52,6 +52,7 @@ const io = new Server(server, {
     origin: corsOrigin,
     methods: ['GET', 'POST', 'PATCH'],
   },
+  maxHttpBufferSize: 10 * 1024 * 1024,
 });
 
 app.use(cors({ origin: corsOrigin }));

@@ -248,7 +248,7 @@
       setUserPoints(result.total_points || userPoints);
       rerenderAll();
     } catch (error) {
-      alert(error.message || 'No se pudo comprar el tema.');
+      notifyError(error.message || 'No se pudo comprar el tema.');
     } finally {
       isProcessingPurchase = false;
     }
@@ -283,7 +283,7 @@
       });
       rerenderAll();
     } catch (error) {
-      alert(error.message || 'No se pudo comprar el código.');
+      notifyError(error.message || 'No se pudo comprar el código.');
     } finally {
       isProcessingPurchase = false;
     }
