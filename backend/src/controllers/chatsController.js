@@ -161,8 +161,15 @@ async function enableEncryption(req, res) {
       return res.status(400).json({ message: 'enable es requerido y debe ser booleano' });
     }
 
-    // Generar salt aleatorio (hex string de 32 caracteres)
-    const salt = enable ? require('crypto').randomBytes(16).toString('hex') : null;
+    // Reutilizar salt existente para no perder capacidad de desencriptar historial.
+    const existingRows = await query(
+      'SELECT encryption_salt FROM chats WHERE id = ? LIMIT 1',
+      [chatId]
+    );
+    const existingSalt = existingRows[0] ? existingRows[0].encryption_salt : null;
+    const salt = enable
+      ? (existingSalt || require('crypto').randomBytes(16).toString('hex'))
+      : null;
 
     const result = await updateEncryptionStatus({ chatId, userId, enable, salt });
     return res.json(result);

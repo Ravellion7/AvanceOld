@@ -271,9 +271,10 @@ async function updateEncryptionStatus({ chatId, userId, enable, salt }) {
   }
 
   try {
-    // Actualizar estado de encriptación
+    // Mantener salt existente cuando no se envía uno nuevo.
+    // Esto permite desencriptar historial antiguo aunque se deshabilite temporalmente.
     await query(
-      'UPDATE chats SET encryption_enabled = ?, encryption_salt = ? WHERE id = ?',
+      'UPDATE chats SET encryption_enabled = ?, encryption_salt = COALESCE(?, encryption_salt) WHERE id = ?',
       [enable ? 1 : 0, salt, chatId]
     );
   } catch (err) {
