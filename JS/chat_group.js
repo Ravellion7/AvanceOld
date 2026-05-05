@@ -85,9 +85,9 @@
     const isMediaAttachment = Number(message.has_attachment) === 1 && ((String(message.file_mime || '').startsWith('image/')) || (String(message.file_mime || '').startsWith('video/')));
     const isLocationMessage = String(message.message_type || '').toLowerCase() === 'location';
 
-    // Si el mensaje está encriptado y encriptación está habilitada, desencriptar
+    // Si el mensaje está encriptado y hay salt disponible, desencriptar
     let displayContent = message.content;
-    if (Number(message.is_encrypted) === 1 && encryptionEnabled && encryptionSalt) {
+    if (Number(message.is_encrypted) === 1 && encryptionSalt) {
       try {
         const decrypted = await EncryptionUtils.decrypt(message.content, encryptionSalt, chatId);
         if (decrypted) {
@@ -483,8 +483,11 @@
     window.location.href = `tareas.html?groupId=${encodeURIComponent(chatId)}`;
   };
 
-  Promise.all([loadGroupInfo(), loadEncryptionStatus(), loadHistory()]).then(() => {
+  (async () => {
+    await loadGroupInfo();
+    await loadEncryptionStatus();
+    await loadHistory();
     connectSocket();
-  });
+  })();
 })();
 
