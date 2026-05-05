@@ -45,3 +45,16 @@ Abre en el navegador:
 http://localhost:4000
 ```
 
+# Corre el server de PeerJS
+
+```
+npm run peer-server
+```
+
+# Crea el cloudflare tunnel
+
+```
+cloudflared tunnel --url http://localhost:4000
+```
+
+
