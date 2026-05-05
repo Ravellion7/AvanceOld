@@ -34,7 +34,8 @@
     <div class="footer-actions">
       <input id="chatInput" type="text" placeholder="Escribe un mensaje...">
       <button id="btnSendMessage">Enviar</button>
-      <button id="btnCall"> Llamar</button>
+      <button id="btnAudioCall" type="button" title="Llamada de audio"><img src="../Images/call.png" alt="Llamar" style="width:20px;height:20px;"></button>
+      <button id="btnVideoCall" type="button" title="Videollamada"><img src="../Images/videocall.png" alt="Videollamada" style="width:20px;height:20px;"></button>
       <button id="btnSendLocation" type="button" title="Compartir ubicación"><img src="../Images/poi.png" alt="Ubicación" style="width:20px;height:20px;"></button>
     </div>
 
@@ -46,11 +47,35 @@
     </div>
   </div>
   </main>
+
+  <!-- Call Modal -->
+  <div id="callModal" class="call-modal hidden">
+    <div class="call-modal-content">
+      <div class="call-modal-header">
+        <h3 id="callModalUserName">Llamada en curso</h3>
+      </div>
+      <div class="call-modal-body">
+        <div id="callModalContent">
+          <!-- Video or profile picture goes here -->
+        </div>
+      </div>
+      <div class="call-modal-footer">
+        <button id="btnMuteToggle" class="call-btn mute-btn" title="Silenciar">
+          🎤 Silenciar
+        </button>
+        <button id="btnHangUp" class="call-btn hangup-btn" title="Colgar">
+          📞 Colgar
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="../JS/navbar.js"></script>
 <script src="../JS/app.js"></script>
 <script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyASvgpTvcKC3A8FvzPWNfv6d24gzPrhzB4&loading=async"></script>
 <script src="../JS/encryption.js"></script>
 <script src="../JS/chat_private.js"></script>

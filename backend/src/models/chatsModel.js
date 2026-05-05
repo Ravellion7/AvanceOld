@@ -182,6 +182,10 @@ async function listPrivateChatsByUser(userId) {
             u.name AS other_user_name,
             u.email AS other_user_email,
             u.is_online AS other_user_online,
+            CASE
+              WHEN u.avatar_data IS NULL THEN NULL
+              ELSE CONCAT('data:', COALESCE(u.avatar_mime, 'image/jpeg'), ';base64,', REPLACE(REPLACE(TO_BASE64(u.avatar_data), '\n', ''), '\r', ''))
+            END AS other_user_avatar,
           COALESCE(up.total_points, 0) AS other_user_points,
             lm.id AS last_message_id,
             lm.sender_id AS last_message_sender_id,

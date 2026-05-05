@@ -274,13 +274,24 @@
   function connectSocket() {
     if (!window.io || !currentUser || !chatId) return;
 
+    const isTunnel = window.location.hostname.includes('trycloudflare.com');
+    const socketTransports = isTunnel ? ['polling'] : ['websocket', 'polling'];
+
     socket = window.io(socketBase, {
       query: { userId: String(currentUser.id) },
-      transports: ['websocket', 'polling'],
+      transports: socketTransports,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     });
 
     socket.on('connect', () => {
       socket.emit('join_chat', chatId);
+    });
+
+    socket.on('connect_error', (error) => {
+      const reason = error && error.message ? error.message : 'Error de conexión';
+      console.warn(`Socket.IO connection error: ${reason}`);
     });
 
     socket.on('receive_message', (message) => {

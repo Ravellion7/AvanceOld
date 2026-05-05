@@ -5,17 +5,124 @@ const {
   awardFirstMultimediaMessage,
 } = require('../models/achievementsModel');
 
+// Map userId -> Set of socketIds
+const userSockets = new Map();
+// Map userId -> peerId
+const peerMap = new Map();
+
 function registerSocketHandlers(io) {
   io.on('connection', (socket) => {
     const userId = Number(socket.handshake.query.userId || 0);
 
     if (userId) {
+      // register socket id for this user
+      const set = userSockets.get(userId) || new Set();
+      set.add(socket.id);
+      userSockets.set(userId, set);
+
       updateUserStatus(userId, true).catch(() => null);
       io.emit('user_status_change', { userId, isOnline: true });
     }
 
+    socket.on('peer:ready', (payload) => {
+      try {
+        if (payload && payload.userId && payload.peerId) {
+          peerMap.set(Number(payload.userId), payload.peerId);
+        }
+      } catch (err) {
+        // ignore
+      }
+    });
+
     socket.on('join_chat', (chatId) => {
       socket.join(`chat:${chatId}`);
+    });
+
+    socket.on('call:request', async (payload) => {
+      try {
+        const chatId = Number(payload.chatId);
+        const fromUserId = Number(payload.fromUserId);
+        const memberIds = await getChatMemberIds(chatId);
+        const recipients = memberIds.filter((id) => Number(id) !== fromUserId);
+
+        const notify = {
+          chatId,
+          fromUserId,
+          fromName: payload.fromName || 'Usuario',
+          fromAvatar: payload.fromAvatar || null,
+          peerId: payload.peerId,
+          callType: payload.callType || 'audio',
+        };
+
+        // send incoming_call to each recipient's sockets
+        recipients.forEach((rid) => {
+          const sockets = userSockets.get(Number(rid));
+          if (sockets) {
+            for (const sid of sockets) {
+              io.to(sid).emit('incoming_call', notify);
+            }
+          }
+        });
+      } catch (err) {
+        // silent
+      }
+    });
+
+    socket.on('call:accepted', (payload) => {
+      try {
+        const toUserId = Number(payload.toUserId);
+        const fromUserId = Number(payload.fromUserId);
+        const sockets = userSockets.get(toUserId);
+        const acceptorPeer = peerMap.get(fromUserId) || null;
+        const info = Object.assign({}, payload, { acceptorPeerId: acceptorPeer });
+        if (sockets) {
+          for (const sid of sockets) {
+            io.to(sid).emit('call:accepted', info);
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    });
+
+    socket.on('call:rejected', (payload) => {
+      try {
+        const toUserId = Number(payload.toUserId);
+        const sockets = userSockets.get(toUserId);
+        if (sockets) {
+          for (const sid of sockets) {
+            io.to(sid).emit('call:rejected', payload);
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    });
+
+    socket.on('call:ended', async (payload) => {
+      try {
+        const chatId = Number(payload.chatId);
+        const fromUserId = Number(payload.fromUserId);
+        const memberIds = await getChatMemberIds(chatId);
+        const recipients = memberIds.filter((id) => Number(id) !== fromUserId);
+
+        const notify = {
+          chatId,
+          fromUserId,
+          fromName: payload.fromName || 'Usuario',
+        };
+
+        recipients.forEach((rid) => {
+          const sockets = userSockets.get(Number(rid));
+          if (sockets) {
+            for (const sid of sockets) {
+              io.to(sid).emit('call:ended', notify);
+            }
+          }
+        });
+      } catch (err) {
+        // ignore
+      }
     });
 
     socket.on('send_message', async (payload, callback) => {
@@ -74,6 +181,13 @@ function registerSocketHandlers(io) {
 
     socket.on('disconnect', () => {
       if (userId) {
+        // remove socket id for this user
+        const set = userSockets.get(userId);
+        if (set) {
+          set.delete(socket.id);
+          if (set.size === 0) userSockets.delete(userId);
+        }
+
         updateUserStatus(userId, false).catch(() => null);
         io.emit('user_status_change', { userId, isOnline: false });
       }

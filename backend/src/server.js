@@ -6,6 +6,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const { Server } = require('socket.io');
 const path = require('path');
+const { ExpressPeerServer } = require('peer');
 
 const authRoutes = require('./routes/authRoutes');
 const usersRoutes = require('./routes/usersRoutes');
@@ -56,6 +57,10 @@ const io = new Server(server, {
   maxHttpBufferSize: 10 * 1024 * 1024,
 });
 
+const peerServer = ExpressPeerServer(server, {
+  debug: true,
+});
+
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: '20mb' }));
 app.use(morgan('dev'));
@@ -66,6 +71,7 @@ app.use('/HTML', express.static(path.join(projectRoot, 'HTML')));
 app.use('/CSS', express.static(path.join(projectRoot, 'CSS')));
 app.use('/JS', express.static(path.join(projectRoot, 'JS')));
 app.use('/Images', express.static(path.join(projectRoot, 'Images')));
+app.use('/peerjs', peerServer);
 
 app.get('/api/health', (req, res) => {
   return res.json({ status: 'ok', service: 'kickmap-backend' });

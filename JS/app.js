@@ -1,10 +1,14 @@
 
+function isLocalhostHost(host) {
+  return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+}
+
 function getDefaultApiBase() {
   if (typeof window !== 'undefined' && window.location && window.location.origin) {
     const host = window.location.hostname;
     const port = window.location.port;
 
-    if (host !== 'localhost' && host !== '127.0.0.1' && host !== '') {
+    if (!isLocalhostHost(host) && host !== '') {
       return `${window.location.origin}/api`;
     }
 
@@ -16,7 +20,27 @@ function getDefaultApiBase() {
   return 'http://localhost:4000/api';
 }
 
-const API_BASE = localStorage.getItem('kickmap_api_base') || getDefaultApiBase();
+function getResolvedApiBase() {
+  const storedBase = localStorage.getItem('kickmap_api_base');
+  if (!storedBase) {
+    return getDefaultApiBase();
+  }
+
+  try {
+    const storedUrl = new URL(storedBase, window.location.origin);
+    const currentHost = window.location.hostname;
+
+    if (!isLocalhostHost(currentHost) && isLocalhostHost(storedUrl.hostname)) {
+      return getDefaultApiBase();
+    }
+
+    return storedBase;
+  } catch (_) {
+    return getDefaultApiBase();
+  }
+}
+
+const API_BASE = getResolvedApiBase();
 
 const USER_BADGE_TIERS = [
   {

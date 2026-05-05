@@ -899,6 +899,129 @@ main.home-main{
   border-color: #e0bf58;
 }
 
+/* Call Modal Styles */
+.call-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.call-modal.hidden {
+  display: none;
+}
+
+.call-modal-content {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.call-modal-header {
+  background: linear-gradient(135deg, #0f8a3a 0%, #087033 100%);
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.call-modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.call-modal-body {
+  padding: 30px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  background: #f9f9f9;
+}
+
+#callModalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+#callModalContent video {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+#callModalContent img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #0f8a3a;
+}
+
+.call-modal-footer {
+  padding: 20px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  background: #f0f0f0;
+}
+
+.call-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.call-btn:hover {
+  transform: scale(1.05);
+}
+
+.call-btn:active {
+  transform: scale(0.98);
+}
+
+.mute-btn {
+  background: #2196F3;
+  color: white;
+}
+
+.mute-btn:hover {
+  background: #1976D2;
+}
+
+.mute-btn.muted {
+  background: #FF9800;
+}
+
+.hangup-btn {
+  background: #f44336;
+  color: white;
+}
+
+.hangup-btn:hover {
+  background: #d32f2f;
+}
+
 .home-page .side-menu {
   display: grid;
   gap: 8px;
