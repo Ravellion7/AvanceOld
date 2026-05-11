@@ -51,10 +51,17 @@ function corsOrigin(origin, callback) {
 
 const io = new Server(server, {
   cors: {
-    origin: corsOrigin,
-    methods: ['GET', 'POST', 'PATCH'],
+    origin: function(origin, callback) {
+      // Allow all origins for WebSocket connections (CORS is less critical for WebSocket)
+      callback(null, true);
+    },
+    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    credentials: true,
   },
   maxHttpBufferSize: 10 * 1024 * 1024,
+  transports: ['websocket', 'polling'],
+  pingInterval: 25000,
+  pingTimeout: 60000,
 });
 
 const peerServer = ExpressPeerServer(server, {

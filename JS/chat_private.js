@@ -284,10 +284,13 @@
         const decrypted = await EncryptionUtils.decrypt(message.content, encryptionSalt, chatId);
         if (decrypted) {
           displayContent = decrypted;
+        } else {
+          // Decryption returned null (may be corrupted), show placeholder
+          displayContent = '[Mensaje encriptado - no se pudo desencriptar]';
         }
       } catch (error) {
         console.error('Error desencriptando:', error);
-        displayContent = '[Mensaje encriptado]';
+        displayContent = '[Mensaje encriptado - error en desencriptación]';
       }
     }
 
@@ -508,7 +511,9 @@
     }
 
     const isTunnel = window.location.hostname.includes('trycloudflare.com');
-    const socketTransports = isTunnel ? ['polling'] : ['websocket', 'polling'];
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // Use polling first on localhost to avoid WebSocket frame errors, then fallback
+    const socketTransports = isTunnel ? ['polling'] : isLocalhost ? ['polling', 'websocket'] : ['websocket', 'polling'];
 
     socket = window.io(socketBase, {
       query: { userId: String(currentUser.id) },
@@ -516,6 +521,7 @@
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
+      reconnectionAttempts: 10,
     });
 
     socket.on('connect', () => {
