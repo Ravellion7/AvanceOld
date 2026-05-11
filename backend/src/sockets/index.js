@@ -125,6 +125,69 @@ function registerSocketHandlers(io) {
       }
     });
 
+    // Group call: broadcast peer info to all members
+    socket.on('group:peer:ready', async (payload) => {
+      try {
+        const chatId = Number(payload.chatId);
+        const userId = Number(payload.userId);
+        const peerId = payload.peerId;
+
+        // Broadcast this user's peerId to all other members in the group
+        const memberIds = await getChatMemberIds(chatId);
+        const recipients = memberIds.filter((id) => Number(id) !== userId);
+
+        recipients.forEach((rid) => {
+          const sockets = userSockets.get(Number(rid));
+          if (sockets) {
+            for (const sid of sockets) {
+              io.to(sid).emit('group:peer:ready', {
+                chatId,
+                userId,
+                peerId,
+              });
+            }
+          }
+        });
+      } catch (err) {
+        console.error('group:peer:ready error:', err);
+      }
+    });
+
+    // Group call start: notify all members
+    socket.on('group:call:start', async (payload) => {
+      try {
+        const chatId = Number(payload.chatId);
+        const fromUserId = Number(payload.fromUserId);
+        const callType = payload.callType || 'audio';
+
+        // Notify all members in the chat (including self for consistency)
+        io.to(`chat:${chatId}`).emit('group:call:started', {
+          chatId,
+          fromUserId,
+          fromName: payload.fromName || 'Usuario',
+          callType,
+        });
+      } catch (err) {
+        console.error('group:call:start error:', err);
+      }
+    });
+
+    // Group call end: notify all members
+    socket.on('group:call:end', async (payload) => {
+      try {
+        const chatId = Number(payload.chatId);
+        const fromUserId = Number(payload.fromUserId);
+
+        io.to(`chat:${chatId}`).emit('group:call:ended', {
+          chatId,
+          fromUserId,
+          fromName: payload.fromName || 'Usuario',
+        });
+      } catch (err) {
+        console.error('group:call:end error:', err);
+      }
+    });
+
     socket.on('send_message', async (payload, callback) => {
       try {
         const message = await saveMessage({

@@ -133,6 +133,29 @@ async function getGroupChatById({ chatId, userId }) {
   return rows[0] || null;
 }
 
+async function getGroupMembersByChatId({ chatId, userId }) {
+  const rows = await query(
+    `SELECT u.id,
+            u.name,
+            u.is_online,
+            cm.role,
+            CASE
+              WHEN u.avatar_data IS NULL THEN NULL
+              ELSE CONCAT('data:', COALESCE(u.avatar_mime, 'image/jpeg'), ';base64,', REPLACE(REPLACE(TO_BASE64(u.avatar_data), '\n', ''), '\r', ''))
+            END AS avatar
+     FROM chats c
+     INNER JOIN chat_members me ON me.chat_id = c.id AND me.user_id = ?
+     INNER JOIN chat_members cm ON cm.chat_id = c.id
+     INNER JOIN users u ON u.id = cm.user_id
+     WHERE c.id = ?
+       AND c.type = 'group'
+     ORDER BY cm.role DESC, u.name ASC`,
+    [userId, chatId]
+  );
+
+  return rows;
+}
+
 async function updateGroupName({ chatId, userId, name }) {
   const rows = await query(
     `SELECT c.id
@@ -303,6 +326,7 @@ module.exports = {
   listPrivateChatsByUser,
   listGroupChatsByUser,
   getGroupChatById,
+  getGroupMembersByChatId,
   updateGroupName,
   markChatAsRead,
   updateEncryptionStatus,

@@ -27,6 +27,8 @@
   let currentGroupName = params.get('name') || 'Grupo';
   let encryptionEnabled = false;
   let encryptionSalt = null;
+  let currentGroupCallType = null;
+  const groupParticipantMeta = new Map();
 
   if (titleEl) {
     titleEl.textContent = currentGroupName;
@@ -250,6 +252,30 @@
     }
   }
 
+  async function loadGroupMembers() {
+    if (!chatId) return;
+
+    try {
+      const members = await apiRequest(`/chats/${chatId}/members`);
+      groupParticipantMeta.clear();
+      members.forEach((member) => {
+        groupParticipantMeta.set(Number(member.id), {
+          id: Number(member.id),
+          name: member.name || `Usuario ${member.id}`,
+          avatar: member.avatar || null,
+          isOnline: Number(member.is_online) === 1,
+          role: member.role || 'member',
+        });
+      });
+
+      if (isInGroupCall || remoteStreams.size > 0) {
+        renderGroupVideoGrid();
+      }
+    } catch (error) {
+      console.warn('No se pudieron cargar los miembros del grupo:', error);
+    }
+  }
+
   async function loadEncryptionStatus() {
     if (!chatId) return;
 
@@ -274,6 +300,85 @@
     }
   }
 
+  function getParticipantMeta(userId) {
+    const numericUserId = Number(userId);
+    if (numericUserId === Number(currentUser.id)) {
+      return {
+        id: Number(currentUser.id),
+        name: currentUser.name || 'Tú',
+        avatar: currentUser.photo || currentUser.avatar || '../Images/perfil.png',
+      };
+    }
+
+    return groupParticipantMeta.get(numericUserId) || {
+      id: numericUserId,
+      name: `Usuario ${numericUserId}`,
+      avatar: '../Images/perfil.png',
+    };
+  }
+
+  function createParticipantTile(meta, stream) {
+    const container = document.createElement('div');
+    container.className = 'group-call-tile';
+
+    const isLocalUser = Number(meta.id) === Number(currentUser.id);
+    const showVideo = currentGroupCallType === 'video' && stream && stream.getVideoTracks().length > 0;
+
+    if (showVideo) {
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.muted = isLocalUser;
+      container.appendChild(video);
+    } else {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'group-call-placeholder';
+
+      const avatarWrap = document.createElement('div');
+      avatarWrap.className = 'avatar-circle';
+
+      const avatarUrl = meta.avatar || '../Images/perfil.png';
+      const img = document.createElement('img');
+      img.src = avatarUrl;
+      img.alt = meta.name || 'Avatar';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      img.style.borderRadius = '50%';
+      img.onerror = () => {
+        avatarWrap.innerHTML = '';
+        avatarWrap.textContent = (meta.name || 'U').trim().charAt(0).toUpperCase();
+      };
+      avatarWrap.innerHTML = '';
+      avatarWrap.appendChild(img);
+
+      const nameLine = document.createElement('div');
+      nameLine.className = 'name-line';
+      nameLine.textContent = meta.name || `Usuario ${meta.id}`;
+
+      placeholder.appendChild(avatarWrap);
+      placeholder.appendChild(nameLine);
+      container.appendChild(placeholder);
+
+      // In audio calls, create a hidden audio element to play remote streams
+      if (currentGroupCallType === 'audio' && !isLocalUser && stream) {
+        const audio = document.createElement('audio');
+        audio.srcObject = stream;
+        audio.autoplay = true;
+        audio.style.display = 'none';
+        container.appendChild(audio);
+      }
+    }
+
+    const label = document.createElement('div');
+    label.className = 'group-call-label';
+    label.textContent = meta.name || `Usuario ${meta.id}`;
+    container.appendChild(label);
+
+    return container;
+  }
+
   function connectSocket() {
     if (!window.io || !currentUser || !chatId) return;
 
@@ -293,6 +398,8 @@
 
     socket.on('connect', () => {
       socket.emit('join_chat', chatId);
+      // Initialize peer for group calls
+      createPeerForGroup();
     });
 
     socket.on('connect_error', (error) => {
@@ -311,6 +418,72 @@
       appendMessage(message);
       if (Number(message.sender_id) !== Number(currentUser.id)) {
         scheduleMarkAsRead();
+      }
+    });
+
+    // Handle peer ready broadcasts in group calls
+    socket.on('group:peer:ready', async (payload) => {
+      if (Number(payload.chatId) !== Number(chatId)) return;
+      if (Number(payload.userId) === Number(currentUser.id)) return;
+      if (!isInGroupCall) return;
+
+      try {
+        const toUserId = Number(payload.userId);
+        const topeerId = payload.peerId;
+
+        // Initiate call to this peer
+        if (localStream && topeerId && !peerConnections.has(toUserId)) {
+          const call = peer.call(topeerId, localStream, {
+            metadata: { fromUserId: currentUser.id, callType: 'audio' },
+          });
+
+          peerConnections.set(toUserId, call);
+
+          call.on('stream', (remoteStream) => {
+            remoteStreams.set(toUserId, remoteStream);
+            renderGroupVideoGrid();
+          });
+
+          call.on('close', () => {
+            remoteStreams.delete(toUserId);
+            peerConnections.delete(toUserId);
+            renderGroupVideoGrid();
+          });
+        }
+      } catch (err) {
+        console.error('Error initiating group call:', err);
+      }
+    });
+
+    // Someone started a group call
+    socket.on('group:call:started', async (payload) => {
+      if (Number(payload.chatId) !== Number(chatId)) return;
+      const isMe = Number(payload.fromUserId) === Number(currentUser.id);
+
+      if (!isMe && !isInGroupCall) {
+        const result = await Swal?.fire?.({
+          title: 'Llamada grupal',
+          text: `${payload.fromName || 'Usuario'} inició una ${payload.callType === 'video' ? 'videollamada' : 'llamada de audio'}.`,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Participar',
+          cancelButtonText: 'Rechazar',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+        }) || { isConfirmed: confirm(`${payload.fromName} inició una llamada. ¿Participar?`) };
+
+        if (result.isConfirmed) {
+          await startGroupCall(payload.callType || 'audio', { announce: false });
+        }
+      }
+    });
+
+    // Someone ended a group call
+    socket.on('group:call:ended', (payload) => {
+      if (Number(payload.chatId) !== Number(chatId)) return;
+
+      if (isInGroupCall) {
+        endGroupCall({ announce: false });
       }
     });
   }
@@ -412,7 +585,237 @@
     );
   }
 
-  const btnSendGroupLocation = document.getElementById('btnSendGroupLocation');
+  // Group call state
+  let peer = null;
+  let peerId = null;
+  let localStream = null;
+  let isInGroupCall = false;
+  let isMutedGroupCall = false;
+  let remoteStreams = new Map(); // userId -> { stream, connection }
+  let peerConnections = new Map(); // userId -> peer.call()
+  
+  const groupCallContainer = document.getElementById('groupCallContainer');
+  const groupVideoGrid = document.getElementById('groupVideoGrid');
+  const btnGroupAudioCall = document.getElementById('btnGroupAudioCall');
+  const btnGroupVideoCall = document.getElementById('btnGroupVideoCall');
+  const btnEndGroupCall = document.getElementById('btnEndGroupCall');
+  const btnGroupMuteToggle = document.getElementById('btnGroupMuteToggle');
+  const groupCallModalTitle = document.getElementById('groupCallModalTitle');
+
+  function createPeerForGroup() {
+    if (peer) return;
+    try {
+      peer = new Peer(undefined, {
+        host: location.hostname,
+        port: location.port || (location.protocol === 'https:' ? 443 : 80),
+        path: '/peerjs',
+        secure: location.protocol === 'https:',
+      });
+
+      peer.on('open', (id) => {
+        peerId = id;
+        if (socket && socket.connected) {
+          socket.emit('group:peer:ready', {
+            chatId,
+            userId: currentUser.id,
+            peerId: id,
+          });
+        }
+      });
+
+      peer.on('call', async (call) => {
+        try {
+          const fromUserId = call.metadata?.fromUserId;
+          if (!fromUserId) {
+            call.close();
+            return;
+          }
+
+          // Answer incoming call with local stream
+          if (localStream) {
+            call.answer(localStream);
+            peerConnections.set(fromUserId, call);
+            
+            call.on('stream', (remoteStream) => {
+              remoteStreams.set(fromUserId, remoteStream);
+              renderGroupVideoGrid();
+            });
+
+            call.on('close', () => {
+              remoteStreams.delete(fromUserId);
+              peerConnections.delete(fromUserId);
+              renderGroupVideoGrid();
+            });
+          }
+        } catch (err) {
+          console.error('Error answering group call:', err);
+        }
+      });
+
+      peer.on('error', (err) => {
+        console.error('Peer error:', err);
+      });
+    } catch (err) {
+      console.error('Peer init failed:', err);
+    }
+  }
+
+  function renderGroupVideoGrid() {
+    groupVideoGrid.innerHTML = '';
+
+    // Add local stream
+    if (localStream) {
+      const localMeta = {
+        id: Number(currentUser.id),
+        name: currentUser.name || 'Tú',
+        avatar: currentUser.photo || currentUser.avatar || '../Images/perfil.png',
+      };
+      groupVideoGrid.appendChild(createParticipantTile(localMeta, localStream));
+    }
+
+    // Add remote streams
+    remoteStreams.forEach((stream, userId) => {
+      const meta = getParticipantMeta(userId);
+      groupVideoGrid.appendChild(createParticipantTile(meta, stream));
+    });
+  }
+
+  function toggleMuteGroupCall() {
+    if (!localStream) return;
+    isMutedGroupCall = !isMutedGroupCall;
+
+    localStream.getAudioTracks().forEach((track) => {
+      track.enabled = !isMutedGroupCall;
+    });
+
+    if (btnGroupMuteToggle) {
+      if (isMutedGroupCall) {
+        btnGroupMuteToggle.classList.add('muted');
+        btnGroupMuteToggle.textContent = '🎤 Activar micrófono';
+      } else {
+        btnGroupMuteToggle.classList.remove('muted');
+        btnGroupMuteToggle.textContent = '🎤 Silenciar';
+      }
+    }
+  }
+
+  function refreshGroupMuteButton() {
+    if (!btnGroupMuteToggle) return;
+    btnGroupMuteToggle.classList.remove('muted');
+    btnGroupMuteToggle.textContent = '🎤 Silenciar';
+  }
+
+  async function startGroupCall(callType, options = {}) {
+    if (!peer) createPeerForGroup();
+    
+    try {
+      const constraints = callType === 'video' ? { audio: true, video: true } : { audio: true, video: false };
+      localStream = await navigator.mediaDevices.getUserMedia(constraints);
+      isInGroupCall = true;
+      isMutedGroupCall = false;
+      currentGroupCallType = callType === 'video' ? 'video' : 'audio';
+      refreshGroupMuteButton();
+
+      // Show UI
+      if (groupCallContainer) {
+        groupCallContainer.style.display = 'block';
+      }
+      renderGroupVideoGrid();
+
+      // Notify other members
+      if (socket && socket.connected && options.announce !== false) {
+        socket.emit('group:call:start', {
+          chatId,
+          fromUserId: currentUser.id,
+          fromName: currentUser.name || 'Usuario',
+          callType: callType === 'video' ? 'video' : 'audio',
+        });
+      }
+
+        // Announce the peer again now that the local stream exists and the user is in the call.
+        // The first peer:ready can happen before the user joins the modal, so other members would ignore it.
+        if (socket && socket.connected && peerId) {
+          socket.emit('group:peer:ready', {
+            chatId,
+            userId: currentUser.id,
+            peerId,
+          });
+        }
+
+      notifyWarning(`${callType === 'video' ? 'Video' : 'Audio'}llamada grupal iniciada...`);
+    } catch (err) {
+      console.error('Error starting group call:', err);
+      notifyError('No se pudo acceder al micrófono/cámara');
+      isInGroupCall = false;
+    }
+  }
+
+  async function endGroupCall(options = {}) {
+    // Close all peer connections
+    peerConnections.forEach((call) => {
+      call.close();
+    });
+    peerConnections.clear();
+    remoteStreams.clear();
+
+    // Stop local stream
+    if (localStream) {
+      localStream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      localStream = null;
+    }
+
+    isInGroupCall = false;
+    isMutedGroupCall = false;
+  currentGroupCallType = null;
+  refreshGroupMuteButton();
+
+    // Hide UI
+    if (groupCallContainer) {
+      groupCallContainer.style.display = 'none';
+    }
+
+    // Notify other members
+    if (socket && socket.connected && options.announce !== false) {
+      socket.emit('group:call:end', {
+        chatId,
+        fromUserId: currentUser.id,
+        fromName: currentUser.name || 'Usuario',
+      });
+    }
+
+    notifyWarning('Videollamada grupal finalizada');
+  }
+
+  // Event listeners for group call buttons
+  if (btnGroupAudioCall) {
+    btnGroupAudioCall.addEventListener('click', () => {
+      if (isInGroupCall) {
+        notifyWarning('Ya hay una llamada en progreso');
+        return;
+      }
+      startGroupCall('audio');
+    });
+  }
+
+  if (btnGroupVideoCall) {
+    btnGroupVideoCall.addEventListener('click', () => {
+      if (isInGroupCall) {
+        notifyWarning('Ya hay una llamada en progreso');
+        return;
+      }
+      startGroupCall('video');
+    });
+  }
+
+  if (btnEndGroupCall) {
+    btnEndGroupCall.addEventListener('click', endGroupCall);
+  }
+
+  if (btnGroupMuteToggle) {
+    btnGroupMuteToggle.addEventListener('click', toggleMuteGroupCall);
+  }
 
   async function renameGroup() {
     const name = (groupNameInputEl.value || '').trim();
@@ -491,6 +894,7 @@
 
   (async () => {
     await loadGroupInfo();
+    await loadGroupMembers();
     await loadEncryptionStatus();
     await loadHistory();
     connectSocket();

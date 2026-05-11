@@ -6,6 +6,7 @@ const {
 	listPrivate,
 	listGroup,
 	getChatInfo,
+	getGroupMembers,
 	renameGroup,
 	markRead,
 	enableEncryption,
@@ -18,6 +19,7 @@ router.get('/private', authMiddleware, listPrivate);
 router.get('/group', authMiddleware, listGroup);
 router.post('/private', authMiddleware, createPrivate);
 router.post('/group', authMiddleware, createGroup);
+router.get('/:id/members', authMiddleware, getGroupMembers);
 router.get('/:id', authMiddleware, getChatInfo);
 router.patch('/:id/name', authMiddleware, renameGroup);
 router.post('/:id/read', authMiddleware, markRead);

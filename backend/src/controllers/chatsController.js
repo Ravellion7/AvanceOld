@@ -5,6 +5,7 @@ const {
   listPrivateChatsByUser,
   listGroupChatsByUser,
   getGroupChatById,
+  getGroupMembersByChatId,
   updateGroupName,
   markChatAsRead,
   updateEncryptionStatus,
@@ -122,6 +123,22 @@ async function getChatInfo(req, res) {
   }
 }
 
+async function getGroupMembers(req, res) {
+  try {
+    const userId = Number(req.user.id);
+    const chatId = Number(req.params.id);
+    const members = await getGroupMembersByChatId({ chatId, userId });
+
+    if (!members.length) {
+      return res.status(404).json({ message: 'Grupo no encontrado' });
+    }
+
+    return res.json(members);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error al obtener miembros del grupo', error: error.message });
+  }
+}
+
 async function renameGroup(req, res) {
   try {
     const userId = Number(req.user.id);
@@ -186,6 +203,7 @@ module.exports = {
   listGroup,
   getGroupChat,
   getChatInfo,
+  getGroupMembers,
   renameGroup,
   markRead,
   enableEncryption,
