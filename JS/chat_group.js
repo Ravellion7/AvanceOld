@@ -691,10 +691,10 @@
     if (btnGroupMuteToggle) {
       if (isMutedGroupCall) {
         btnGroupMuteToggle.classList.add('muted');
-        btnGroupMuteToggle.textContent = '🎤 Activar micrófono';
+        btnGroupMuteToggle.textContent = 'Activar micrófono';
       } else {
         btnGroupMuteToggle.classList.remove('muted');
-        btnGroupMuteToggle.textContent = '🎤 Silenciar';
+        btnGroupMuteToggle.textContent = 'Silenciar';
       }
     }
   }
@@ -702,7 +702,7 @@
   function refreshGroupMuteButton() {
     if (!btnGroupMuteToggle) return;
     btnGroupMuteToggle.classList.remove('muted');
-    btnGroupMuteToggle.textContent = '🎤 Silenciar';
+    btnGroupMuteToggle.textContent = 'Silenciar';
   }
 
   async function startGroupCall(callType, options = {}) {
