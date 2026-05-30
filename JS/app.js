@@ -384,8 +384,15 @@ function renderHeaderUser() {
 function wireLogoutButton() {
   const btn = document.getElementById('btnLogout');
   if (!btn) return;
-  btn.addEventListener('click', (e) => {
+  btn.addEventListener('click', async (e) => {
     e.preventDefault();
+
+    try {
+      await apiRequest('/auth/logout', { method: 'POST' });
+    } catch (_) {
+      // Continue logout flow even if the request fails.
+    }
+
     clearSession();
     window.location.href = 'landing.html';
   });

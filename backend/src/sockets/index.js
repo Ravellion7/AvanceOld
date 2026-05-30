@@ -7,14 +7,43 @@ const {
 
 // Map userId -> Set of socketIds
 const userSockets = new Map();
+// Map userId -> timeout used to mark the user offline after a short grace period
+const offlineTimers = new Map();
 // Map userId -> peerId
 const peerMap = new Map();
+
+function clearOfflineTimer(userId) {
+  const timer = offlineTimers.get(userId);
+  if (timer) {
+    clearTimeout(timer);
+    offlineTimers.delete(userId);
+  }
+}
+
+function scheduleOfflineUpdate(io, userId) {
+  clearOfflineTimer(userId);
+
+  const timer = setTimeout(async () => {
+    const sockets = userSockets.get(userId);
+    if (sockets && sockets.size > 0) {
+      return;
+    }
+
+    await updateUserStatus(userId, false).catch(() => null);
+    io.emit('user_status_change', { userId, isOnline: false });
+    offlineTimers.delete(userId);
+  }, 3000);
+
+  offlineTimers.set(userId, timer);
+}
 
 function registerSocketHandlers(io) {
   io.on('connection', (socket) => {
     const userId = Number(socket.handshake.query.userId || 0);
 
     if (userId) {
+      clearOfflineTimer(userId);
+
       // register socket id for this user
       const set = userSockets.get(userId) || new Set();
       set.add(socket.id);
@@ -251,8 +280,9 @@ function registerSocketHandlers(io) {
           if (set.size === 0) userSockets.delete(userId);
         }
 
-        updateUserStatus(userId, false).catch(() => null);
-        io.emit('user_status_change', { userId, isOnline: false });
+        if (!userSockets.has(userId)) {
+          scheduleOfflineUpdate(io, userId);
+        }
       }
     });
   });

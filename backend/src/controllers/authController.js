@@ -88,7 +88,22 @@ async function login(req, res) {
   }
 }
 
+async function logout(req, res) {
+  try {
+    const userId = Number(req.user && req.user.id);
+    if (!userId) {
+      return res.status(401).json({ message: 'No autorizado' });
+    }
+
+    await updateUserStatus(userId, false);
+    return res.json({ message: 'Logout exitoso' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error en logout', error: error.message });
+  }
+}
+
 module.exports = {
   register,
   login,
+  logout,
 };
