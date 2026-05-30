@@ -84,6 +84,12 @@ app.get('/api/health', (req, res) => {
   return res.json({ status: 'ok', service: 'kickmap-backend' });
 });
 
+app.get('/api/config/google-maps', (req, res) => {
+  return res.json({
+    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || null,
+  });
+});
+
 app.get('/', (req, res) => {
   return res.sendFile(path.join(projectRoot, 'HTML', 'landing.html'));
 });

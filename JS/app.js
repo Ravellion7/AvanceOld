@@ -432,5 +432,32 @@ async function apiRequestRaw(path, options = {}) {
   return response;
 }
 
+async function loadGoogleMapsScript() {
+  if (window.google && window.google.maps) {
+    return;
+  }
+
+  if (document.querySelector('script[data-google-maps-api="true"]')) {
+    return;
+  }
+
+  const response = await fetch(`${API_BASE}/config/google-maps`);
+  if (!response.ok) {
+    return;
+  }
+
+  const config = await response.json().catch(() => null);
+  const apiKey = config && config.googleMapsApiKey;
+  if (!apiKey) {
+    return;
+  }
+
+  const script = document.createElement('script');
+  script.dataset.googleMapsApi = 'true';
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&loading=async`;
+  script.async = true;
+  document.head.appendChild(script);
+}
+
 applyProfileTheme(getStoredProfileTheme());
 ensureSweetAlert2();

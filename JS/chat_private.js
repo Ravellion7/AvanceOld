@@ -902,6 +902,7 @@
   }
 
   (async () => {
+    loadGoogleMapsScript().catch(() => null);
     await loadEncryptionStatus();
     await loadOtherUserAvatar();
     await loadHistory();

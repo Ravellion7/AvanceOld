@@ -893,6 +893,7 @@
   };
 
   (async () => {
+    loadGoogleMapsScript().catch(() => null);
     await loadGroupInfo();
     await loadGroupMembers();
     await loadEncryptionStatus();
