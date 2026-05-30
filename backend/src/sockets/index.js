@@ -4,6 +4,7 @@ const {
   awardFirstPrivateMessage,
   awardFirstMultimediaMessage,
 } = require('../models/achievementsModel');
+const { query } = require('../config/db');
 
 // Map userId -> Set of socketIds
 const userSockets = new Map();
@@ -23,6 +24,10 @@ function clearOfflineTimer(userId) {
 function scheduleOfflineUpdate(io, userId) {
   clearOfflineTimer(userId);
 
+  // Grace period de 10 s para cubrir la navegación entre páginas:
+  // cuando el usuario navega, el socket viejo se cierra y el nuevo tarda
+  // unos segundos en conectarse. Sin este margen el usuario aparece offline
+  // erróneamente durante la transición.
   const timer = setTimeout(async () => {
     const sockets = userSockets.get(userId);
     if (sockets && sockets.size > 0) {
@@ -32,7 +37,7 @@ function scheduleOfflineUpdate(io, userId) {
     await updateUserStatus(userId, false).catch(() => null);
     io.emit('user_status_change', { userId, isOnline: false });
     offlineTimers.delete(userId);
-  }, 3000);
+  }, 10000);
 
   offlineTimers.set(userId, timer);
 }
@@ -244,7 +249,26 @@ function registerSocketHandlers(io) {
           await awardFirstMultimediaMessage(Number(payload.senderId)).catch(() => null);
         }
 
-        io.to(`chat:${payload.chatId}`).emit('receive_message', message);
+        // Adjuntar el salt del chat para que los receptores puedan desencriptar
+        // aunque no hayan cargado el estado de encriptación previamente.
+        let chatEncryptionSalt = null;
+        if (message.is_encrypted) {
+          try {
+            const chatRows = await query(
+              'SELECT encryption_salt FROM chats WHERE id = ? LIMIT 1',
+              [Number(payload.chatId)]
+            );
+            chatEncryptionSalt = chatRows[0] ? chatRows[0].encryption_salt : null;
+          } catch (_) {
+            // no bloquear el broadcast si falla
+          }
+        }
+
+        const broadcast = chatEncryptionSalt
+          ? { ...message, chat_encryption_salt: chatEncryptionSalt }
+          : message;
+
+        io.to(`chat:${payload.chatId}`).emit('receive_message', broadcast);
         if (callback) callback({ ok: true, message });
       } catch (error) {
         if (callback) callback({ ok: false, error: error.message });

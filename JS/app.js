@@ -387,6 +387,12 @@ function wireLogoutButton() {
   btn.addEventListener('click', async (e) => {
     e.preventDefault();
 
+    // Cerrar el socket de presencia explícitamente para que el servidor
+    // marque al usuario como offline de inmediato (sin esperar el grace period).
+    if (window._presenceSocket && window._presenceSocket.connected) {
+      window._presenceSocket.disconnect();
+    }
+
     try {
       await apiRequest('/auth/logout', { method: 'POST' });
     } catch (_) {
@@ -461,3 +467,54 @@ async function loadGoogleMapsScript() {
 
 applyProfileTheme(getStoredProfileTheme());
 ensureSweetAlert2();
+
+// ---------------------------------------------------------------------------
+// Presencia global: mantén al usuario marcado como en línea en todas las páginas.
+// Se conecta un socket mínimo cuyo único propósito es mantener la sesión activa.
+// ---------------------------------------------------------------------------
+(function initPresenceSocket() {
+  // No correr en la página de landing (no hay sesión que mantener)
+  const session = getSession();
+  if (!session) return;
+
+  const userId = getCurrentUser() && getCurrentUser().id;
+  if (!userId) return;
+
+  // Derivar la URL base del socket igual que los chats
+  function getSocketBase() {
+    const base = getApiBase();
+    return base.replace(/\/api\/?$/, '');
+  }
+
+  function connectPresence() {
+    if (!window.io) return;
+
+    const socketBase = getSocketBase();
+    const isTunnel = window.location.hostname.includes('trycloudflare.com');
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const transports = isTunnel ? ['polling'] : isLocal ? ['polling', 'websocket'] : ['websocket', 'polling'];
+
+    const presenceSocket = window.io(socketBase, {
+      query: { userId: String(userId) },
+      transports,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: Infinity,
+    });
+
+    // Guardar referencia global para que el logout pueda cerrarlo limpiamente
+    window._presenceSocket = presenceSocket;
+  }
+
+  // Cargar Socket.IO client si no está disponible todavía
+  if (window.io) {
+    connectPresence();
+  } else {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.socket.io/4.8.0/socket.io.min.js';
+    script.async = true;
+    script.onload = connectPresence;
+    document.head.appendChild(script);
+  }
+}());

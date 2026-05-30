@@ -279,18 +279,22 @@
 
     // Si el mensaje está encriptado y hay salt disponible, desencriptar
     let displayContent = message.content;
-    if (Number(message.is_encrypted) === 1 && encryptionSalt) {
-      try {
-        const decrypted = await EncryptionUtils.decrypt(message.content, encryptionSalt, chatId);
-        if (decrypted) {
-          displayContent = decrypted;
-        } else {
-          // Decryption returned null (may be corrupted), show placeholder
-          displayContent = '[Mensaje encriptado - no se pudo desencriptar]';
+    if (Number(message.is_encrypted) === 1) {
+      // Usar el salt local o, como fallback, el salt que viene en el payload del socket
+      const saltToUse = encryptionSalt || message.chat_encryption_salt || null;
+      if (saltToUse) {
+        try {
+          const decrypted = await EncryptionUtils.decrypt(message.content, saltToUse, chatId);
+          if (decrypted) {
+            displayContent = decrypted;
+          } else {
+            // Decryption returned null (may be corrupted), show placeholder
+            displayContent = '[Mensaje encriptado - no se pudo desencriptar]';
+          }
+        } catch (error) {
+          console.error('Error desencriptando:', error);
+          displayContent = '[Mensaje encriptado - error en desencriptación]';
         }
-      } catch (error) {
-        console.error('Error desencriptando:', error);
-        displayContent = '[Mensaje encriptado - error en desencriptación]';
       }
     }
 
@@ -542,6 +546,12 @@
 
     socket.on('receive_message', (message) => {
       if (Number(message.chat_id) !== Number(chatId)) return;
+
+      // Si el servidor adjuntó el salt del chat, actualizar el estado local
+      // para que mensajes futuros también se puedan desencriptar sin recargar.
+      if (message.chat_encryption_salt && !encryptionSalt) {
+        encryptionSalt = message.chat_encryption_salt;
+      }
 
       const emptyState = messagesEl.querySelector('.msg.other span');
       if (emptyState && emptyState.textContent === 'No hay mensajes todavia.') {
