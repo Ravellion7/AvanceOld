@@ -136,7 +136,7 @@
 
     if (btnMuteToggleEl) {
       btnMuteToggleEl.classList.remove('muted');
-      btnMuteToggleEl.textContent = '🎤 Silenciar';
+      btnMuteToggleEl.textContent = 'Silenciar';
     }
 
     if (callModalEl) {
@@ -637,7 +637,7 @@
               remoteEl.srcObject = remoteStream;
             }
           });
-          
+
           showCallModal(payload.fromName, payload.fromAvatar || '../Images/perfil.png', payload.callType);
 
           call.on('close', () => {

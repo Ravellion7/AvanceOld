@@ -450,6 +450,17 @@ button:hover, .btn:hover { filter: brightness(0.95); }
   margin-top: 10px;
 }
 
+/* Inputs de chat dentro del área de acciones: siempre de izquierda a derecha
+   y con ancho flexible. Esto previene el bug de texto espejeado en móvil
+   que ocurre cuando el input queda demasiado estrecho en pantallas pequeñas. */
+.footer-actions input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: plaintext;
+}
+
 .notice {
   padding: 10px;
   border-radius: 10px;
